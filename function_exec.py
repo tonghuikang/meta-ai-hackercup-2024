@@ -76,8 +76,8 @@ def execute_code(code_str, input_str) -> tuple[str, str]:
             timeout=5  # Set a timeout to prevent infinite execution
         )
         if result.stderr:
-            return result.stdout, "Error:" + result.stderr
-        return result.stdout, ""
+            return result.stdout, result.stderr
+        return result.stdout, result.stderr
 
     except subprocess.TimeoutExpired as e:
         return e.stdout.decode() if e.stdout else "", "Error: Code execution timed out."

@@ -4,4 +4,3 @@ Case #3: YES
 Case #4: NO
 Case #5: NO
 Case #6: YES
-Error:

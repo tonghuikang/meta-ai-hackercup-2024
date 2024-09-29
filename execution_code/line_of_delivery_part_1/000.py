@@ -1,68 +1,62 @@
-def simulate_stones(N, G, energies):
-    # Create a list of tuples (energy, index) to store the original indices
-    stones = [(energies[i], i + 1) for i in range(N)]  # (Energy, 1-indexed position)
-    
-    # Sort stones by energy descending, so we process the strongest first
-    stones.sort(reverse=True, key=lambda x: x[0])
-
-    positions = [0] * N  # Where each stone ends up
-    for energy, idx in stones:
-        # Start at position 0
-        position = 0
-        remaining_energy = energy
-        
-        while remaining_energy > 0:
-            if position < N and positions[position] == 0:
-                # No stone at this position: move forward
-                positions[position] = idx
-                break
-            elif position < N and positions[position] != 0:
-                # Collision: transfer energy
-                remaining_energy -= 1  # moving to the occupied site
-                position += 1
-            else:
-                # If we are at a point beyond existing stones, can place the stone
-                positions.append(idx)  # Appends if it's out of the current dynamic range
-                break
-
-    # Find the stone closest to the goal G
-    closest_stone_index = -1
-    closest_distance = float('inf')
-
-    for i in range(N):
-        stone_position = positions[i]
-        distance_to_goal = abs(G - stone_position)
-
-        if distance_to_goal < closest_distance:
-            closest_distance = distance_to_goal
-            closest_stone_index = i + 1  # 1-based index
-        elif distance_to_goal == closest_distance:
-            if i + 1 < closest_stone_index:
-                closest_stone_index = i + 1
-
-    return closest_stone_index, closest_distance
-
-
-def main():
-    import sys
-    input = sys.stdin.read
-    data = input().splitlines()
-    
-    T = int(data[0])
-    index = 1
+def curling_game(T, test_cases):
     results = []
-
-    for case_number in range(1, T + 1):
-        N, G = map(int, data[index].split())
-        index += 1
-        energies = [int(data[index + i]) for i in range(N)]
-        index += N
+    
+    for case_index in range(T):
+        N, G = test_cases[case_index][0]
+        energies = test_cases[case_index][1]
         
-        closest_stone_index, closest_distance = simulate_stones(N, G, energies)
-        results.append(f"Case #{case_number}: {closest_stone_index} {closest_distance}")
+        # List that will hold the final positions of the stones
+        positions = [0] * N
+        
+        # List to track the stones in terms of (energy, index)
+        # Sort by energy, as no two energies are the same
+        stone_energy_index = sorted(((energies[i], i) for i in range(N)), reverse=True)
+        
+        pos = 0  # This represents the absolute position of the stone being moved
+        for energy, index in stone_energy_index:
+            # Assign the new position either to the next free spot
+            # or to the position where it's being blocked by a previous stone
+            if pos < energy:
+                positions[index] = energy
+                pos = energy
+            else:
+                # If the position is occupied, move forward one unit at a time until we can place the stone
+                positions[index] = pos + 1
+                pos += 1
+                
+        # Determine the closest stone to the goal
+        closest_index = -1
+        closest_distance = float('inf')
+        
+        for i in range(N):
+            distance_to_goal = abs(positions[i] - G)
+            if (distance_to_goal < closest_distance) or (
+                distance_to_goal == closest_distance and (closest_index == -1 or i < closest_index)):
+                closest_distance = distance_to_goal
+                closest_index = i
+        
+        # Store the result for this test case in 1-indexed format
+        results.append(f"Case #{case_index + 1}: {closest_index + 1} {closest_distance}")
+    
+    return results
 
-    print("\n".join(results))
+# Reading input
+import sys
 
+input_data = sys.stdin.read().strip().splitlines()
+T = int(input_data[0])
+test_cases = []
 
-if __name__ == "__main__":
-    main()
+index = 1
+for _ in range(T):
+    N, G = map(int, input_data[index].split())
+    energies = [int(input_data[index + i + 1]) for i in range(N)]
+    test_cases.append(((N, G), energies))
+    index += N + 1
+
+# Running the game logic
+results = curling_game(T, test_cases)
+
+# Outputting the results
+for result in results:
+    print(result)

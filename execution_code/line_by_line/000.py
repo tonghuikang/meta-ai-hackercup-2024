@@ -1,32 +1,38 @@
-def calculate_increase_probability(N, P):
-    # Convert P from percentage to a fraction
-    P_fraction = P / 100.0
+def calculate_needed_increase(N, P):
+    # Probability of getting all lines correct with N lines of code
+    P_success_N = (P / 100) ** N
     
-    # The success chance for the original N lines of code
-    success_chance_N = P_fraction ** N
+    # Probability of getting all lines correct with N-1 lines of code
+    P_success_N_minus_1 = (P / 100) ** (N - 1)
     
-    # The success chance for just N-1 lines of code
-    success_chance_N1 = P_fraction ** (N - 1)
+    # We want to find the new probability (P_new) such that:
+    # (P_new / 100) ** N = P_success_N_minus_1
+    # => P_new / 100 = (P_success_N_minus_1) ** (1/N)
+    # => P_new = 100 * (P_success_N_minus_1) ** (1/N)
     
-    # We need to find the required P_new such that (P_new / 100.0) ** N = success_chance_N1
-    # Solving for P_new:
-    # (P_new / 100.0) = success_chance_N1 ** (1/N)
-    # P_new = 100.0 * (success_chance_N1 ** (1/N))
+    P_new = 100 * (P_success_N_minus_1 ** (1/N))
     
-    success_probability_N1 = success_chance_N1 ** (1 / (N - 1))
+    # Increase needed in percentage
+    increase_needed = P_new - P
     
-    P_new = 100.0 * success_probability_N1
-    
-    # Return how much higher P needs to be
-    return P_new - P
+    return increase_needed
 
 def main():
-    T = int(input().strip())
+    import sys
+    input = sys.stdin.read
+    data = input().splitlines()
+    
+    T = int(data[0])  # Number of test cases
+    results = []
     
     for i in range(1, T + 1):
-        N, P = map(int, input().strip().split())
-        increase = calculate_increase_probability(N, P)
-        print(f"Case #{i}: {increase:.12f}")
+        N, P = map(int, data[i].split())
+        increase = calculate_needed_increase(N, P)
+        results.append(f"Case #{i}: {increase}")
+    
+    # Printing results
+    for result in results:
+        print(result)
 
 if __name__ == "__main__":
     main()

@@ -59,10 +59,12 @@ def solve(contest_folder, password, problem_name, solution_id):
     execute_code = modal.Function.lookup("hackercup", "execute_code")
 
     sample_executed_output, sample_executed_error = execute_code.remote(python_code, sample_in)
-    sample_executed_output += "Error:\n" + sample_executed_error
+    if sample_executed_error:
+        sample_executed_output += "Error:\n" + sample_executed_error
 
     full_executed_output, full_executed_error = execute_code.remote(python_code, full_in)
-    full_executed_output += "Error:\n" + full_executed_error
+    if sample_executed_error:
+        full_executed_output += "Error:\n" + full_executed_error
 
     os.makedirs(f'execution_sample_out/{problem_code}', exist_ok=True)
     os.makedirs(f'execution_full_out/{problem_code}', exist_ok=True)

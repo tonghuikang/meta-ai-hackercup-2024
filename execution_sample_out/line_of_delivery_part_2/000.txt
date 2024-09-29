@@ -1,0 +1,9 @@
+Error:
+Traceback (most recent call last):
+  File "/tmp/tmpsn6ty7mc.py", line 61, in <module>
+    main()
+  File "/tmp/tmpsn6ty7mc.py", line 53, in main
+    closest_stone_index, distance_to_G = simulate_curling(N, G, energies)
+  File "/tmp/tmpsn6ty7mc.py", line 9, in simulate_curling
+    while pos > 0 and positions[pos - 1] != 0:
+IndexError: list index out of range
