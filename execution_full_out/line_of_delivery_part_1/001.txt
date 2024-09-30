@@ -1,0 +1,9 @@
+Error:
+Traceback (most recent call last):
+  File "/tmp/tmprf421dgj.py", line 58, in <module>
+    main()
+  File "/tmp/tmprf421dgj.py", line 52, in main
+    closest_stone_index, distance = process_case(N, G, energies)
+  File "/tmp/tmprf421dgj.py", line 18, in process_case
+    current_energy = (positions[collided_index] + current_energy) - (position + 1)
+IndexError: list index out of range

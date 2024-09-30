@@ -1,60 +1,82 @@
-def simulate_curling(N, G, energies):
-    # To store the final positions of the stones
-    positions = [0] * N
-
-    for i in range(N):
-        energy = energies[i]
-        pos = max(0, min(G + 1000000, energy))
+def curling_simulation(test_cases):
+    results = []
+    
+    for case_index in range(len(test_cases)):
+        N, G, energies = test_cases[case_index]
         
-        while pos > 0 and positions[pos - 1] != 0:
-            remaining_energy = energy - (pos - (positions[pos - 1] + 1))
-            if remaining_energy < 0:
-                break
-            energy = remaining_energy
-            pos -= 1
+        # Positions of stones after all have been thrown
+        positions = [0] * N
+        
+        for i in range(N):
+            energy = energies[i]
+            pos = 0
             
-        positions[pos] = energy
-    
-    # Final positions after handling collisions
-    final_positions = []
-    for i in range(N):
-        if positions[i] > 0:
-            final_positions.append((i + 1, i))  # Store stone index (1-based) and its position
+            while energy > 0:
+                if pos + 1 < N and positions[pos + 1] > pos + 1:
+                    # We have a stone at pos+1
+                    positions[pos] = pos
+                    energy -= (positions[pos + 1] - pos - 1)
+                    pos += 1
+                    continue
+                elif pos < energy:
+                    pos += 1
+                    energy -= 1
+                else:
+                    break
+            
+            positions[i] = pos
+            
+            # If the stone stopped and there's energy left to transfer
+            for j in range(i + 1, N):
+                if positions[j - 1] + 1 == positions[j]:
+                    positions[j] = positions[j - 1] + 1
+                else:
+                    break
+        
+        # Find the stone closest to the goal
+        closest_stone_index = -1
+        closest_distance = float('inf')
+        
+        for i in range(N):
+            distance = abs(positions[i] - G)
+            if distance < closest_distance:
+                closest_distance = distance
+                closest_stone_index = i
+            elif distance == closest_distance:
+                closest_stone_index = min(closest_stone_index, i)
 
-    # Extract positions
-    final_positions = sorted(final_positions, key=lambda x: (abs(G - x[1]), x[0]))
-    
-    # Find the closest stone
-    closest_stone_index = final_positions[0][0]
-    distance_to_G = abs(G - final_positions[0][1])
-    
-    return closest_stone_index, distance_to_G
+        results.append(f"Case #{case_index + 1}: {closest_stone_index + 1} {closest_distance}")
+
+    return results
 
 
 def main():
     import sys
     input = sys.stdin.read
-    data = input().splitlines()
     
+    # Read input
+    data = input().strip().splitlines()
     T = int(data[0])
-    index = 1
-    results = []
+    test_cases = []
     
-    for t in range(1, T + 1):
+    index = 1
+    for _ in range(T):
         N, G = map(int, data[index].split())
         index += 1
-        
         energies = []
+        
         for _ in range(N):
-            energy = int(data[index])
-            energies.append(energy)
+            energies.append(int(data[index]))
             index += 1
         
-        closest_stone_index, distance_to_G = simulate_curling(N, G, energies)
-        results.append(f"Case #{t}: {closest_stone_index} {distance_to_G}")
+        test_cases.append((N, G, energies))
     
-    # Print all results
-    print("\n".join(results))
+    # Solve the cases
+    results = curling_simulation(test_cases)
+    
+    # Output the results
+    for result in results:
+        print(result)
 
 
 if __name__ == "__main__":
