@@ -4,19 +4,25 @@ import sys
 def main():
     T = int(sys.stdin.readline())
     for case in range(1, T+1):
-        parts = sys.stdin.readline().strip().split()
-        if len(parts) <2:
-            # In case of extra empty lines
-            while len(parts)<2:
-                parts += sys.stdin.readline().strip().split()
-        N, P = map(int, parts)
-        p = P / 100.0
-        exponent = (N -1)/N
-        p_prime = math.pow(p, exponent)
-        P_prime = 100.0 * p_prime
-        delta = P_prime - P
-        # To ensure enough precision, format with 15 decimal places
-        print(f"Case #{case}: {delta:.15f}")
+        line = ''
+        while line.strip() == '':
+            line = sys.stdin.readline()
+        N_str, P_str = line.strip().split()
+        N = int(N_str)
+        P = float(P_str)
+
+        if P == 0:
+            # If P is 0%, no chance of success, increasing P is the only way
+            # But as per constraints P >=1
+            diff = 0.0
+        else:
+            p_original = P / 100.0
+            exponent = (N - 1) / N
+            p_new = 100.0 * math.pow(p_original, exponent)
+            diff = p_new - P
+
+        # Ensure the output has enough decimal places
+        print(f"Case #{case}: {diff:.15f}")
 
 if __name__ == "__main__":
     main()

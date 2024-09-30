@@ -27,10 +27,14 @@ def get_current_status(contest_folder):
         ) for file in files
     ]
 
+    if file_info == []:
+        return pd.DataFrame(), pd.DataFrame()
+
     # Create a DataFrame from file_info and files
     df = pd.DataFrame(file_info, columns=['execution_type', 'problem_code', 'solution_id'])
     df["problem_name"] = df["problem_code"].map(problem_mapping)
     df['filepath'] = files
+    df['filepath'] = df['filepath'].astype(str)
 
     # Pivot the DataFrame to have execution types as separate columns
     df_grouped = df.pivot(
@@ -46,11 +50,20 @@ def get_current_status(contest_folder):
         ]
     ]
 
+    if 'execution_code_filepath' not in df_grouped.columns:
+        df_grouped['execution_code_filepath'] = None
+
+    if 'execution_sample_out_filepath' not in df_grouped.columns:
+        df_grouped['execution_sample_out_filepath'] = None
+
+    if 'execution_full_out_filepath' not in df_grouped.columns:
+        df_grouped['execution_full_out_filepath'] = None
+
     # Function to read file content
     @cache
     def read_file(problem_name, filename):
         filepath = os.path.join('practice', problem_name, filename)
-        if os.path.exists(filepath):
+        if filepath and type(filepath) == str and os.path.exists(filepath):
             with open(filepath, 'r') as f:
                 return f.read()[:10000]
         return "Not available"
@@ -63,7 +76,7 @@ def get_current_status(contest_folder):
 
     # Function to read file content from a given filepath
     def read_file_content(filepath):
-        if filepath and os.path.exists(filepath):
+        if filepath and type(filepath) == str and os.path.exists(filepath):
             with open(filepath, 'r') as f:
                 return f.read()
         return None
@@ -117,6 +130,9 @@ def get_current_status(contest_folder):
     # Apply the function to create the 'status' column
     aggregated_df['status'] = aggregated_df.apply(determine_status, axis=1)        
 
+    timestring = datetime.datetime.now().strftime("%M%S")
+    aggregated_df['timestring'] = timestring
+
     return df_grouped, aggregated_df
 
 
@@ -143,15 +159,18 @@ These are the solutions, with their code and the execution outputs.
 
 {solutions_string}
 
-Select the best solution by returning their number, e.g. The best solution is <index>004</index>.
+Analyze each solution's algorithm and implementation, and its outputs for correctness.
 
-Write a brief description.
-"""
+Summarize the findings.
+
+Then, select the best solution by printing their solution id between <index> and </index>
+e.g. The best solution is <index>004</index>.
+""".strip()
 
 
 solution_string = """
 <solution>
-This is solution number {solution_id}
+This is solution id <index>{solution_id}</index>
 
 This is the code of the solution
 
@@ -193,7 +212,6 @@ def extract_index_id(text):
 import datetime
 
 def process_row(row):
-    timestring = datetime.datetime.now().strftime("%M%S")
 
     solutions_string = "\n\n".join(
         solution_string.format(
@@ -225,15 +243,16 @@ def process_row(row):
     selected_solution_id = extract_index_id(openai_judgment)
 
     problem_code = row["problem_code"]
+    timestring = row["timestring"]
 
     # Define the source file paths for the code and output
     code_src = f"execution_code/{problem_code}/{selected_solution_id}.py"
     output_src = f"execution_full_out/{problem_code}/{selected_solution_id}.txt"
 
-    code_dst = f"code/{problem_code}_{timestring}_{selected_solution_id}.py"
+    code_dst = f"source/{problem_code}_{timestring}_{selected_solution_id}.py"
     output_dst = f"output/{problem_code}_{timestring}_{selected_solution_id}.txt"
 
-    os.makedirs(f'code', exist_ok=True)
+    os.makedirs(f'source', exist_ok=True)
     os.makedirs(f'output', exist_ok=True)
 
     import shutil
@@ -247,3 +266,4 @@ def process_row(row):
     with open('./hash_analyzed', 'a') as f:
         f.write(row["hash"] + "\n")
 
+    return openai_judgment, selected_solution_id
