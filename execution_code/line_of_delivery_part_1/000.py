@@ -1,64 +1,56 @@
-def curling_solver(test_cases):
-    results = []
-    
-    for case_num, (N, G, energies) in enumerate(test_cases, start=1):
-        positions = [0] * N
-        
-        # Create tuples of (energy, original_index) and sort them by energy
-        indexed_energies = sorted((e, i) for i, e in enumerate(energies))
-        
-        current_position = 0
-        
-        for energy, original_index in indexed_energies:
-            # Move the stone based on its energy
-            if current_position < G:
-                while energy > 0:
-                    if current_position < G and (current_position == positions[current_position if current_position < N else N-1]):
-                        # If there's a collision, the current stone stops and stays at the last position
-                        positions[original_index] = current_position
-                        break
-                    else:
-                        # Move the stone one unit right
-                        current_position += 1
-                        energy -= 1
-                else:
-                    # If energy runs out, place stone at the current position
-                    positions[original_index] = current_position
-
-        # Finding the closest stone to the goal G
-        closest_distance = float('inf')
-        closest_index = -1
-        
-        for i in range(N):
-            distance = abs(positions[i] - G)
-            if distance < closest_distance or (distance == closest_distance and i < closest_index):
-                closest_distance = distance
-                closest_index = i
-        
-        # Prepare the result for this test case
-        results.append(f"Case #{case_num}: {closest_index + 1} {closest_distance}")
-    
-    return results
-
-# Read inputs
 import sys
-input = sys.stdin.read
-data = input().splitlines()
+import bisect
 
-T = int(data[0])
-test_cases = []
+def main():
+    import sys
+    import threading
 
-line_index = 1
-for _ in range(T):
-    N, G = map(int, data[line_index].split())
-    line_index += 1
-    energies = [int(data[line_index + i]) for i in range(N)]
-    test_cases.append((N, G, energies))
-    line_index += N
+    def run():
+        T_and_rest = sys.stdin.read().split()
+        T = int(T_and_rest[0])
+        ptr = 1
+        for test_case in range(1, T+1):
+            N = int(T_and_rest[ptr])
+            G = int(T_and_rest[ptr+1])
+            ptr +=2
+            E_list = list(map(int, T_and_rest[ptr:ptr+N]))
+            ptr +=N
+            sorted_stones = []
+            final_pos = [0]*(N+1)  # 1-based indexing
+            for i in range(1, N+1):
+                moving_stone = i
+                current_pos = 0
+                remaining_energy = E_list[i-1]
+                while remaining_energy >0:
+                    # Find the first stone with position > current_pos
+                    idx = bisect.bisect_right(sorted_stones, (current_pos, -1))
+                    if idx < len(sorted_stones) and sorted_stones[idx][0] <= current_pos + remaining_energy:
+                        x, j = sorted_stones[idx]
+                        dx = x - current_pos
+                        remaining_energy -= dx
+                        final_pos[moving_stone] = x
+                        # Remove the collided stone
+                        del sorted_stones[idx]
+                        # Now, the collided stone becomes the moving stone
+                        moving_stone = j
+                        current_pos = x
+                    else:
+                        # No collision, stone stops here
+                        final_x = current_pos + remaining_energy
+                        final_pos[moving_stone] = final_x
+                        bisect.insort(sorted_stones, (final_x, moving_stone))
+                        break
+            # Find the stone closest to G
+            best_distance = abs(final_pos[1] - G)
+            best_index =1
+            for i in range(2, N+1):
+                distance = abs(final_pos[i] - G)
+                if distance < best_distance or (distance == best_distance and i < best_index):
+                    best_distance = distance
+                    best_index =i
+            print(f"Case #{test_case}: {best_index} {best_distance}")
+    
+    threading.Thread(target=run).start()
 
-# Get results
-results = curling_solver(test_cases)
-
-# Print results
-for result in results:
-    print(result)
+if __name__ == "__main__":
+    main()

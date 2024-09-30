@@ -15,7 +15,8 @@ def problem_name_to_problem_code(problem_name: str) -> str:
 
 def get_first_response(prompt):
     completion = client.chat.completions.create(
-        model="gpt-4o-mini",
+        # model="gpt-4o-mini",
+        model="o1-mini",
         messages=[{"role": "user", "content": prompt}],
     )
     return completion.choices[0].message.content

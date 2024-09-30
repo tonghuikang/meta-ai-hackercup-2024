@@ -1,69 +1,65 @@
-def curling_game(test_cases):
-    results = []
-    
-    for case_number, (N, G, energies) in enumerate(test_cases):
-        positions = [0] * N  # to track final positions
-        
-        for i in range(N):
-            energy = energies[i]
-            pos = 0
-            
-            while energy > 0 and pos < N:
-                if pos < N - 1 and positions[pos + 1] == 0:  # There is space to collide
-                    pos += 1  # Move to the next position
-                    energy -= 1
-                elif pos < N - 1 and positions[pos + 1] > 0:  # There is a stone at the next position
-                    transfer_energy = min(energy, N - positions[pos])  # Energy can be transferred
-                    energy -= transfer_energy
-                    positions[pos + 1] += transfer_energy
-                    if energy > 0:  # If energy is left, the stone stops here
-                        break
-                else:
-                    break  # No movement can be made anymore
-            
-            positions[pos] += 1  # Place the stone here
-        
-        # Calculating the closest stone to G and its distance
-        closest_index = -1
-        closest_distance = float('inf')
+import sys
+import threading
 
-        for idx in range(N):
-            if positions[idx] > 0:  # If there's a stone here
-                distance_to_goal = abs(G - idx)
-                if distance_to_goal < closest_distance:
-                    closest_distance = distance_to_goal
-                    closest_index = idx
-                elif distance_to_goal == closest_distance:
-                    if idx < closest_index:  # In case of tie by index
-                        closest_index = idx
-        
-        results.append(f"Case #{case_number + 1}: {closest_index + 1} {closest_distance}")
-    
-    return results
-
-
-# Input reading
 def main():
     import sys
-    input = sys.stdin.read
-    data = input().strip().splitlines()
-    
-    T = int(data[0])
-    idx = 1
-    test_cases = []
-    
-    for _ in range(T):
-        N, G = map(int, data[idx].split())
-        idx += 1
-        energies = []
-        for __ in range(N):
-            energies.append(int(data[idx]))
-            idx += 1
-        test_cases.append((N, G, energies))
-    
-    results = curling_game(test_cases)
-    for result in results:
-        print(result)
+    import bisect
 
-if __name__ == '__main__':
-    main()
+    import sys
+
+    sys.setrecursionlimit(1 << 25)
+
+    T = int(sys.stdin.readline())
+    for tc in range(1, T +1):
+        line = ''
+        while line.strip() == '':
+            line = sys.stdin.readline()
+        N, G = map(int, line.strip().split())
+        E = []
+        cnt =0
+        while cnt < N:
+            e_line = sys.stdin.readline()
+            if e_line.strip() == '':
+                continue
+            E.append(int(e_line.strip()))
+            cnt +=1
+        pos_to_stone = {}
+        for s in range(1, N +1):
+            E_i = E[s-1]
+            s_current = s
+            p =0
+            while E_i >0:
+                if (p +1) in pos_to_stone:
+                    # Collision occurs at p
+                    p_stop = p
+                    # Steps taken to reach p_stop: p_stop - p_start
+                    # Remaining energy: E_i - (p_stop - p_start)
+                    # Since p_start is current p, steps taken = p_stop - p
+                    # Thus, remaining_E = E_i
+                    remaining_E = E_i
+                    # Assign current stone to p_stop
+                    pos_to_stone[p_stop] = s_current
+                    # Transfer energy to the stone at p+1
+                    s_new = pos_to_stone[p +1]
+                    s_current = s_new
+                    p = p_stop
+                    E_i = remaining_E
+                else:
+                    # No collision, move to p+1
+                    p +=1
+                    E_i -=1
+                    if E_i ==0:
+                        pos_to_stone[p] = s_current
+            # Proceed to next stone
+
+        # After all stones are thrown, find the stone closest to G
+        min_distance = float('inf')
+        min_stone = N +1
+        for p, s in pos_to_stone.items():
+            dist = abs(p - G)
+            if dist < min_distance or (dist == min_distance and s < min_stone):
+                min_distance = dist
+                min_stone = s
+        print(f"Case #{tc}: {min_stone} {min_distance}")
+
+threading.Thread(target=main).start()

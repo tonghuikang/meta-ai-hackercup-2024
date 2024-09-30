@@ -1,0 +1,10 @@
+Case #1: 20.710678118654755
+Case #2: 11.544346900318832
+Case #3: 2.9408199270876167
+Error:
+Traceback (most recent call last):
+  File "/tmp/tmpg_qghju7.py", line 22, in <module>
+    main()
+  File "/tmp/tmpg_qghju7.py", line 16, in main
+    base = (P**(N-1)) * 100
+OverflowError: (34, 'Numerical result out of range')
