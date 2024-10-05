@@ -13,8 +13,6 @@ def get_current_status(contest_folder):
     problem_names = [os.path.basename(os.path.normpath(folder)) for folder in folders]
     problem_mapping = {problem_name_to_problem_code(problem_name): problem_name for problem_name in problem_names}
 
-    problem_names
-
     # Get all files in execution_full_out
     files = glob.glob(f"./execution_*/*/*")  # get all files, e.g., 'fall_in_line' and '000'
 
@@ -62,7 +60,7 @@ def get_current_status(contest_folder):
     # Function to read file content
     @cache
     def read_file(problem_name, filename):
-        filepath = os.path.join('practice', problem_name, filename)
+        filepath = os.path.join(contest_folder, problem_name, filename)
         if filepath and type(filepath) == str and os.path.exists(filepath):
             with open(filepath, 'r') as f:
                 return f.read()[:10000]

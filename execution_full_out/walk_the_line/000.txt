@@ -8,7 +8,7 @@ Case #7: YES
 Case #8: YES
 Case #9: NO
 Case #10: YES
-Case #11: YES
+Case #11: NO
 Case #12: NO
 Case #13: NO
 Case #14: NO
@@ -110,5 +110,5 @@ Case #109: NO
 Case #110: NO
 Case #111: NO
 Case #112: NO
-Case #113: YES
+Case #113: NO
 Case #114: NO
