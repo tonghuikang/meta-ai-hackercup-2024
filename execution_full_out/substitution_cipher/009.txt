@@ -1,0 +1,5 @@
+Error:
+  File "/tmp/tmpmh4snn58.py", line 124
+    dp[j] = dp[j +1}
+                   ^
+SyntaxError: closing parenthesis '}' does not match opening parenthesis '['
