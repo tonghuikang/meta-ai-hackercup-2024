@@ -150,6 +150,11 @@ def get_current_status(contest_folder):
 analysis_prompt = """
 You will choose the best solution among the presented solutions.
 
+The best solution is a solution that
+- has successfully execute on the full input
+- is most likely to be fully correct
+
+
 This is the problem statement.
 
 {statement}
@@ -185,15 +190,15 @@ solution_string = """
 <solution>
 This is solution id <index>{solution_id}</index>
 
-This is the code of the solution
+This is a presented solution
 
-{execution_code}
+{execution_response}
 
-When executed on the sample input, this is the output (may be truncated)
+When the Python code was executed on the sample input, this is the output (may be truncated)
 
 {execution_sample_out}
 
-When executed on the full input, this is the output (may be truncated)
+When the Python code was executed on the full input, this is the output (may be truncated)
 
 {execution_full_out}
 
@@ -229,13 +234,13 @@ def process_row(row):
     solutions_string = "\n\n".join(
         solution_string.format(
             solution_id = solution_id,
-            execution_code = execution_code,
+            execution_response = execution_response,
             execution_sample_out = execution_sample_out,
             execution_full_out = execution_full_out,
-        ) for solution_id, execution_code, execution_sample_out, execution_full_out in zip(
-            row["solution_id"],
-            row["execution_code"],
-            row["execution_sample_out"],
+        ) for solution_id, execution_response, execution_sample_out, execution_full_out in zip(
+            row["solution_id"][:10000],
+            row["execution_response"][:10000],
+            row["execution_sample_out"][:2000],
             row["execution_full_out"][:2000],
         )
     )
@@ -244,12 +249,14 @@ def process_row(row):
         f.write(row["hash"] + "\n")
 
     judgment_instructions = analysis_prompt.format(
-        statement = row["statement"],
-        sample_in = row["sample_in"],
-        sample_out = row["sample_out"],
+        statement = row["statement"][:40000],
+        sample_in = row["sample_in"][:2000],
+        sample_out = row["sample_out"][:2000],
         full_in = row["full_in"][:2000],
         solutions_string = solutions_string,
     )
+
+    judgment_instructions = judgment_instructions[:500_000]
 
     openai_judgment = call_openai(judgment_instructions)
 
@@ -259,16 +266,22 @@ def process_row(row):
     timestring = row["timestring"]
 
     # Define the source file paths for the code and output
+    response_src = f"execution_response/{problem_code}/{selected_solution_id}.md"
     code_src = f"execution_code/{problem_code}/{selected_solution_id}.py"
     output_src = f"execution_full_out/{problem_code}/{selected_solution_id}.txt"
 
+    response_dst = f"response/{problem_code}_{timestring}_{selected_solution_id}.md"
     code_dst = f"source/{problem_code}_{timestring}_{selected_solution_id}.py"
     output_dst = f"output/{problem_code}_{timestring}_{selected_solution_id}.txt"
 
-    os.makedirs(f'source', exist_ok=True)
     os.makedirs(f'output', exist_ok=True)
+    os.makedirs(f'source', exist_ok=True)
+    os.makedirs(f'response', exist_ok=True)
 
     import shutil
+
+    if os.path.exists(response_src):
+        shutil.copy(response_src, response_dst)
 
     if os.path.exists(code_src):
         shutil.copy(code_src, code_dst)
