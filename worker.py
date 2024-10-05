@@ -13,10 +13,10 @@ def problem_name_to_problem_code(problem_name: str) -> str:
     return problem_code
 
 
-def get_first_response(prompt):
+def get_first_response(prompt, model="o1-mini"):
     completion = client.chat.completions.create(
         # model="gpt-4o-mini",
-        model="o1-mini",
+        model=model,
         messages=[{"role": "user", "content": prompt}],
     )
     return completion.choices[0].message.content
@@ -89,7 +89,10 @@ def solve(contest_folder, password, problem_name, solution_id):
 
     prompt = generation_prompt.format(statement=statement, sample_in=sample_in, sample_out=sample_out)
 
-    response = get_first_response(prompt)
+    model = "o1-mini"
+    if solution_id == "001" or solution_id == "005":
+        model = "o1-preview"
+    response = get_first_response(prompt, model=model)
     with open(f"execution_response/{problem_code}/{solution_id}.md", "w") as f:
         f.write(response)
 

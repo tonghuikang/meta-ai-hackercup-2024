@@ -167,7 +167,7 @@ This is an expected sample output.
 
 {sample_out}
 
-This is the full input (which may be truncated).
+This is the full input (may be truncated).
 
 {full_in}
 
