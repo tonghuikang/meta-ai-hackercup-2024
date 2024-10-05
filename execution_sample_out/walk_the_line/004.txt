@@ -1,0 +1,13 @@
+Case #1: YES
+Case #2: NO
+Case #3: YES
+Case #4: NO
+Case #5: NO
+Case #6: YES
+Error:
+Traceback (most recent call last):
+  File "/tmp/tmpqok2nmdq.py", line 83, in <module>
+    bridge_crossing()
+  File "/tmp/tmpqok2nmdq.py", line 47, in bridge_crossing
+    T = int(sys.stdin.readline())
+ValueError: invalid literal for int() with base 10: ''
