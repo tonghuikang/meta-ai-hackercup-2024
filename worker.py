@@ -22,6 +22,19 @@ def get_first_response(prompt):
     return completion.choices[0].message.content
 
 
+## Backup call
+# import anthropic
+# client = anthropic.Anthropic()
+# message = client.messages.create(
+#     model="claude-3-5-sonnet-20240620",
+#     max_tokens=2048,
+#     messages=[
+#         {"role": "user", "content": "Hello, Claude"}
+#     ]
+# )
+# print(message.content[0].text)
+
+
 def extract_python_code(response_string):
     pattern = r'```python\s*(.*?)\s*```'
     matches = re.findall(pattern, response_string, re.DOTALL)

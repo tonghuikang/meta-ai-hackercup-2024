@@ -217,6 +217,19 @@ def call_openai(prompt):
     return completion.choices[0].message.content
 
 
+## Backup call
+# import anthropic
+# client = anthropic.Anthropic()
+# message = client.messages.create(
+#     model="claude-3-5-sonnet-20240620",
+#     max_tokens=1024,
+#     messages=[
+#         {"role": "user", "content": "Hello, Claude"}
+#     ]
+# )
+# print(message.content[0].text)
+
+
 import re
 
 def extract_index_id(text):
