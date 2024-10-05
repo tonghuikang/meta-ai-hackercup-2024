@@ -1,39 +1,39 @@
 import sys
-from itertools import groupby
-
-def max_freq(lst):
-    sorted_lst = sorted(lst)
-    return max((sum(1 for _ in g) for k, g in groupby(sorted_lst)), default=0)
+import numpy as np
 
 def main():
     import sys
-    import sys
-    data = sys.stdin.read().split()
+    import numpy as np
+
+    input = sys.stdin.read().split()
     ptr = 0
-    T = int(data[ptr])
+    T = int(input[ptr])
     ptr +=1
-    for test_case in range(1, T+1):
-        N = int(data[ptr])
+    for case in range(1, T+1):
+        N = int(input[ptr])
         ptr +=1
-        xs = []
-        ys = []
-        y_minus_x = []
-        y_plus_x = []
-        for _ in range(N):
-            x = int(data[ptr])
-            y = int(data[ptr+1])
-            ptr +=2
-            xs.append(x)
-            ys.append(y)
-            y_minus_x.append(y - x)
-            y_plus_x.append(y + x)
-        max_x = max_freq(xs)
-        max_y = max_freq(ys)
-        max_y_minus_x = max_freq(y_minus_x)
-        max_y_plus_x = max_freq(y_plus_x)
-        P = max(max_x, max_y, max_y_minus_x, max_y_plus_x)
-        M = N - P
-        print(f"Case #{test_case}: {M}")
+        if N <2:
+            # All points are on a line
+            M=0
+            ptr += 2*N
+        else:
+            # Read N pairs
+            points = np.array(list(map(int, input[ptr:ptr+2*N])), dtype=np.int64).reshape(N,2)
+            ptr +=2*N
+            x1, y1 = points[0]
+            x2, y2 = points[1]
+            dx = x2 - x1
+            dy = y2 - y1
+            if dx ==0:
+                # Vertical line: x ==x1
+                count = np.sum(points[:,0] == x1)
+            else:
+                # Non-vertical line: dy*(x -x1) == dx*(y - y1)
+                lhs = dy * (points[:,0] - x1)
+                rhs = dx * (points[:,1] - y1)
+                count = np.sum(lhs == rhs)
+            M = N - count
+        print(f"Case #{case}: {M}")
 
 if __name__ == "__main__":
     main()
