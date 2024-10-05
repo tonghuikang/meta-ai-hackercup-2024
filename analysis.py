@@ -48,6 +48,9 @@ def get_current_status(contest_folder):
         ]
     ]
 
+    if 'execution_response_filepath' not in df_grouped.columns:
+        df_grouped['execution_response_filepath'] = None
+
     if 'execution_code_filepath' not in df_grouped.columns:
         df_grouped['execution_code_filepath'] = None
 
@@ -80,6 +83,9 @@ def get_current_status(contest_folder):
         return None
 
     # Replace 'execution_code_filepath' with the actual code content
+    df_grouped['execution_response'] = df_grouped['execution_response_filepath'].apply(read_file_content)
+
+    # Replace 'execution_code_filepath' with the actual code content
     df_grouped['execution_code'] = df_grouped['execution_code_filepath'].apply(read_file_content)
 
     # Replace 'execution_sample_out_filepath' with the actual sample output content
@@ -89,7 +95,14 @@ def get_current_status(contest_folder):
     df_grouped['execution_full_out'] = df_grouped['execution_full_out_filepath'].apply(read_file_content)
 
     # Optionally, drop the original filepath columns if they are no longer needed
-    df_grouped = df_grouped.drop(columns=['execution_code_filepath', 'execution_full_out_filepath', 'execution_sample_out_filepath'])
+    df_grouped = df_grouped.drop(
+        columns=[
+            'execution_response_filepath',
+            'execution_code_filepath',
+            'execution_full_out_filepath',
+            'execution_sample_out_filepath'
+        ]
+    )
 
     # Aggregate to problem
     aggregated_df = df_grouped.groupby(
@@ -134,7 +147,7 @@ def get_current_status(contest_folder):
     return df_grouped, aggregated_df
 
 
-prompt = """
+analysis_prompt = """
 You will choose the best solution among the presented solutions.
 
 This is the problem statement.
@@ -157,7 +170,9 @@ These are the solutions, with their code and the execution outputs.
 
 {solutions_string}
 
-Analyze each solution's algorithm and implementation, and its outputs for correctness.
+If the input size is small, carefully derive the set of correct solutions.
+
+Then, analyze each solution's algorithm and implementation, and its outputs for correctness.
 
 Summarize the findings.
 
@@ -174,11 +189,11 @@ This is the code of the solution
 
 {execution_code}
 
-When executed on the sample input, this is the output
+When executed on the sample input, this is the output (may be truncated)
 
 {execution_sample_out}
 
-When executed on the full input, this is the output
+When executed on the full input, this is the output (may be truncated)
 
 {execution_full_out}
 
@@ -228,7 +243,7 @@ def process_row(row):
     with open('./hash_analyzing', 'a') as f:
         f.write(row["hash"] + "\n")
 
-    judgment_instructions = prompt.format(
+    judgment_instructions = analysis_prompt.format(
         statement = row["statement"],
         sample_in = row["sample_in"],
         sample_out = row["sample_out"],

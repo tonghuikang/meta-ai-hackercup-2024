@@ -58,7 +58,7 @@ image = Image.debian_slim().pip_install(
 # TODO also upload encrypted content materials
 
 
-app = App("hackercup")
+app = App("hackercup2")
 
 
 @app.function(image=image, timeout=30, container_idle_timeout=1200)
@@ -73,7 +73,7 @@ def execute_code(code_str, input_str) -> tuple[str, str]:
             input=input_str,
             text=True,
             capture_output=True,
-            timeout=5  # Set a timeout to prevent infinite execution
+            timeout=15  # Set a timeout to prevent infinite execution
         )
         if result.stderr:
             return result.stdout, result.stderr

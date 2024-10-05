@@ -1,0 +1,11 @@
+Case #1: 1 2
+Case #2: 2 4
+Case #3: 2 0
+Case #4: 1 5
+Error:
+Traceback (most recent call last):
+  File "/tmp/tmp3gyy1hii.py", line 85, in <module>
+    main()
+  File "/tmp/tmp3gyy1hii.py", line 57, in main
+    T = int(data[idx]); idx +=1
+IndexError: list index out of range

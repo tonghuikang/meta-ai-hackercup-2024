@@ -112,10 +112,3 @@ Case #111: NO
 Case #112: NO
 Case #113: NO
 Case #114: NO
-Error:
-Traceback (most recent call last):
-  File "/tmp/tmpbc3ptj85.py", line 85, in <module>
-    solve_bridge_problem()
-  File "/tmp/tmpbc3ptj85.py", line 48, in solve_bridge_problem
-    T = int(sys.stdin.readline())
-ValueError: invalid literal for int() with base 10: ''
