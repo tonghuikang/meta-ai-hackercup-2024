@@ -1,5 +1,6 @@
-Error:
-  File "/tmp/tmp_3qrjfyu.py", line 124
-    dp[j] = dp[j +1}
-                   ^
-SyntaxError: closing parenthesis '}' does not match opening parenthesis '['
+Case #1: 972 116
+Case #2: 13521 2
+Case #3: 835 11
+Case #4: 11 2
+Case #5: 1122 5
+Case #6: 39999999999999998913 931013326

@@ -80,6 +80,6 @@ def execute_code(code_str, input_str) -> tuple[str, str]:
         return result.stdout, result.stderr
 
     except subprocess.TimeoutExpired as e:
-        return e.stdout.decode() if e.stdout else "", "Error: Code execution timed out."
+        return e.stdout.decode() if e.stdout else "", "Code execution timed out."
     finally:
         os.remove(tmp_file_path)

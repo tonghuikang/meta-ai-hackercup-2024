@@ -36,8 +36,8 @@ def get_current_status(contest_folder):
 
     # Pivot the DataFrame to have execution types as separate columns
     df_grouped = df.pivot(
-        index=['problem_code', 'solution_id', 'problem_name'], 
-        columns='execution_type', 
+        index=['problem_code', 'solution_id', 'problem_name'],
+        columns='execution_type',
         values='filepath'
     ).reset_index()
 
@@ -66,7 +66,7 @@ def get_current_status(contest_folder):
         filepath = os.path.join(contest_folder, problem_name, filename)
         if filepath and type(filepath) == str and os.path.exists(filepath):
             with open(filepath, 'r') as f:
-                return f.read()[:10000]
+                return f.read()
         return "Not available"
 
     # Add 'statement', 'sample_in', 'sample_out' columns
@@ -104,8 +104,16 @@ def get_current_status(contest_folder):
         ]
     )
 
+    # Subset to aggregate grouping by
+    df_subset_to_aggregate = df_grouped[
+        (~(df_grouped["execution_sample_out"] == ""))
+        & (~(df_grouped["execution_full_out"] == ""))
+        & (~df_grouped["execution_sample_out"].str.contains("An error happened during execution:"))
+        & (~df_grouped["execution_full_out"].str.contains("An error happened during execution:"))
+    ]
+
     # Aggregate to problem
-    aggregated_df = df_grouped.groupby(
+    aggregated_df = df_subset_to_aggregate.groupby(
         [
             'problem_code', 'problem_name', 'statement', 'sample_in', 'sample_out', 'full_in'
         ]
@@ -114,9 +122,10 @@ def get_current_status(contest_folder):
     # Compute MD5 hash of concatenated execution fields
     aggregated_df["hash"] = aggregated_df.apply(
         lambda row: hashlib.md5(
-            (str(row["execution_code"]) + 
-            str(row["execution_sample_out"]) + 
-            str(row["execution_full_out"])
+            (
+                str(row["execution_code"]) +
+                str(row["execution_sample_out"]) +
+                str(row["execution_full_out"])
             ).encode('utf-8')
         ).hexdigest()[:8],
         axis=1
@@ -240,6 +249,13 @@ def extract_index_id(text):
     return None
 
 
+def truncate(text, length):
+    assert length >= 100
+    if len(text) <= length:
+        return text
+    return text[:2*length // 3] + " truncated " + text[-length // 3:]
+
+
 import datetime
 
 def process_row(row):
@@ -247,14 +263,14 @@ def process_row(row):
     solutions_string = "\n\n".join(
         solution_string.format(
             solution_id = solution_id,
-            execution_response = execution_response,
-            execution_sample_out = execution_sample_out,
-            execution_full_out = execution_full_out,
+            execution_response = truncate(execution_response, 10000),
+            execution_sample_out = truncate(execution_sample_out, 2000),
+            execution_full_out = truncate(execution_full_out, 2000),
         ) for solution_id, execution_response, execution_sample_out, execution_full_out in zip(
-            row["solution_id"][:10000],
-            row["execution_response"][:10000],
-            row["execution_sample_out"][:2000],
-            row["execution_full_out"][:2000],
+            row["solution_id"],
+            row["execution_response"],
+            row["execution_sample_out"],
+            row["execution_full_out"],
         )
     )
 
@@ -262,14 +278,14 @@ def process_row(row):
         f.write(row["hash"] + "\n")
 
     judgment_instructions = analysis_prompt.format(
-        statement = row["statement"][:40000],
-        sample_in = row["sample_in"][:2000],
-        sample_out = row["sample_out"][:2000],
-        full_in = row["full_in"][:2000],
+        statement = truncate(row["statement"], 40000),
+        sample_in = truncate(row["sample_in"], 10000),
+        sample_out = truncate(row["sample_out"], 10000),
+        full_in = truncate(row["full_in"], 10000),
         solutions_string = solutions_string,
     )
 
-    judgment_instructions = judgment_instructions[:500_000]
+    judgment_instructions = truncate(judgment_instructions, 200_000)
 
     openai_judgment = call_openai(judgment_instructions)
 
@@ -286,10 +302,12 @@ def process_row(row):
     response_dst = f"response/{problem_code}_{timestring}_{selected_solution_id}.md"
     code_dst = f"source/{problem_code}_{timestring}_{selected_solution_id}.py"
     output_dst = f"output/{problem_code}_{timestring}_{selected_solution_id}.txt"
+    judgement_dst = f"logs/judgement/{problem_code}_{timestring}_{selected_solution_id}.txt"
 
     os.makedirs(f'output', exist_ok=True)
     os.makedirs(f'source', exist_ok=True)
     os.makedirs(f'response', exist_ok=True)
+    os.makedirs(f'logs/judgement', exist_ok=True)
 
     import shutil
 
@@ -304,5 +322,8 @@ def process_row(row):
 
     with open('./hash_analyzed', 'a') as f:
         f.write(row["hash"] + "\n")
+
+    with open(judgement_dst, 'w') as f:
+        f.write(openai_judgment)
 
     return openai_judgment, selected_solution_id

@@ -104,12 +104,12 @@ def solve(contest_folder, password, problem_name, solution_id):
 
     sample_executed_output, sample_executed_error = execute_code.remote(python_code, sample_in)
     if sample_executed_error:
-        sample_executed_output += "Error:\n" + sample_executed_error
+        sample_executed_output += "An error happened during execution:\n" + sample_executed_error
     with open(f"execution_sample_out/{problem_code}/{solution_id}.txt", "w") as f:
         f.write(sample_executed_output)
 
     full_executed_output, full_executed_error = execute_code.remote(python_code, full_in)
     if sample_executed_error:
-        full_executed_output += "Error:\n" + full_executed_error
+        full_executed_output += "An error happened during execution:\n" + full_executed_error
     with open(f"execution_full_out/{problem_code}/{solution_id}.txt", "w") as f:
         f.write(full_executed_output)

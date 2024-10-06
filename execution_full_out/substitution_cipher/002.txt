@@ -1,0 +1,5 @@
+An error happened during execution:
+  File "/tmp/tmphzzut2ie.py", line 52
+    p[i} =1 if dp_max[i} >0 else 0
+       ^
+SyntaxError: closing parenthesis '}' does not match opening parenthesis '['

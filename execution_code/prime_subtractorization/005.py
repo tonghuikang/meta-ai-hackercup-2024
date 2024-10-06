@@ -3,52 +3,35 @@ import threading
 
 def main():
     import bisect
-    import math
     T = int(sys.stdin.readline())
-    Ns = []
-    N_max = 0
-    for _ in range(T):
-        N = int(sys.stdin.readline())
-        Ns.append(N)
-        if N > N_max:
-            N_max = N
-    N_max += 1  # Ensure inclusive
+    Ns = [int(sys.stdin.readline()) for _ in range(T)]
+    N_MAX = max(Ns) + 10  # Incremented to ensure we cover up to N
 
-    # Sieve of Eratosthenes to generate all primes up to N_max
-    is_prime = [True] * N_max
-    is_prime[0] = is_prime[1] = False
-    for i in range(2, int(N_max ** 0.5) + 1):
+    # Sieve of Eratosthenes
+    is_prime = [True] * (N_MAX)
+    is_prime[0], is_prime[1] = False, False
+    for i in range(2, int(N_MAX**0.5) + 1):
         if is_prime[i]:
-            for j in range(i * i, N_max, i):
+            for j in range(i*i, N_MAX, i):
                 is_prime[j] = False
+    # Generate list of primes
+    primes_list = [p for p in range(2, N_MAX) if is_prime[p]]
 
-    primes = [i for i, val in enumerate(is_prime) if val]
-    primes_set = set(primes)
+    # Precompute primes set for quick lookup
+    # is_prime list is already there
 
-    # Precompute min_P_for_D for each prime D
-    min_P_for_D = {}
-    for D in primes:
-        min_P = None
-        for P in primes:
-            if P <= D:
-                continue
-            if (P - D) in primes_set:
-                min_P = P
-                break
-        if min_P:
-            min_P_for_D[D] = min_P
-        else:
-            min_P_for_D[D] = None
-
-    # Process each test case
     for idx, N in enumerate(Ns, 1):
-        count = 0
-        for D in primes:
-            if D > N:
-                break
-            if min_P_for_D[D] is not None and min_P_for_D[D] <= N:
-                count += 1
-        print(f'Case #{idx}: {count}')
+        ans = 0
+        small_primes = [2, 3, 5, 7]
+        index_limit = bisect.bisect_right(primes_list, N - 2)
+        for p in primes_list[:index_limit]:
+            for p2 in small_primes:
+                p1 = p + p2
+                if p1 > N:
+                    break
+                if is_prime[p1]:
+                    ans += 1
+                    break  # Stop checking other small_primes for this p
+        print(f"Case #{idx}: {ans}")
 
-if __name__ == "__main__":
-    threading.Thread(target=main,).start()
+threading.Thread(target=main).start()

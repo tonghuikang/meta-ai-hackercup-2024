@@ -1,38 +1,41 @@
 import sys
-import threading
 
 def main():
     import sys
-    sys.setrecursionlimit(1 << 25)
+
     MOD = 998244353
+    LETTERS = [chr(i) for i in range(65, 91)]  # 'A' to 'Z'
 
-    T = int(sys.stdin.readline())
-    for test_case in range(1, T + 1):
-        N = int(sys.stdin.readline())
-        strings = [sys.stdin.readline().strip() for _ in range(N)]
+    data = sys.stdin.read().splitlines()
+    T = int(data[0])
+    ptr = 1
+    for test_case in range(1, T +1):
+        N = int(data[ptr])
+        ptr +=1
+        strings = data[ptr: ptr + N]
+        ptr += N
 
-        # Define the trie as nested dictionaries
-        trie = {}
-        count = 1  # Start with root node
+        # Initialize trie
+        trie = [ [None]*26 ]  # root node at index 0
+        node_count =1
 
         for s in strings:
-            def insert(node, pos):
-                nonlocal count
-                if pos == len(s):
-                    return
-                c = s[pos]
+            current_nodes = [0]
+            for c in s:
                 if c == '?':
-                    keys = [chr(ord('A') + i) for i in range(26)]
+                    possible_indices = list(range(26))
                 else:
-                    keys = [c]
-                for ch in keys:
-                    if ch not in node:
-                        node[ch] = {}
-                        count = (count + 1) % MOD
-                    insert(node[ch], pos + 1)
+                    possible_indices = [ord(c) - 65]
+                next_nodes = []
+                for node_id in current_nodes:
+                    for idx in possible_indices:
+                        if trie[node_id][idx] is None:
+                            trie[node_id][idx] = node_count
+                            trie.append( [None]*26 )
+                            node_count +=1
+                        next_nodes.append(trie[node_id][idx])
+                current_nodes = next_nodes
+        print(f"Case #{test_case}: {node_count % MOD}")
 
-            insert(trie, 0)
-
-        print(f"Case #{test_case}: {count % MOD}")
-
-threading.Thread(target=main,).start()
+if __name__ == "__main__":
+    main()
