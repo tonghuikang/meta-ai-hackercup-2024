@@ -1,0 +1,24 @@
+Case #1: 122 3
+Case #2: 135 2
+Case #3: 110 1
+Case #4: 1122 5
+Case #5: 322222222121221112223 10946
+An error happened during execution:
+Exception in thread Thread-2:
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.9/threading.py", line 980, in _bootstrap_inner
+Exception in thread Thread-1:
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/local/lib/python3.9/threading.py", line 917, in run
+    self.run()
+  File "/usr/local/lib/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/tmp/tmp31bn6u1s.py", line 80, in solve
+    T = int(sys.stdin.readline())
+ValueError: invalid literal for int() with base 10: '135201 1\n'    
+self._target(*self._args, **self._kwargs)
+  File "/tmp/tmp31bn6u1s.py", line 18, in solve
+    E = E_K[0]
+IndexError: list index out of range

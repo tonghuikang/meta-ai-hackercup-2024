@@ -5,16 +5,20 @@ import hashlib
 
 from worker import problem_name_to_problem_code
 from functools import cache
+from typing import Any
 
-def get_current_status(contest_folder):
+
+def get_current_status(contest_folder, evaluation=False):
+    if evaluation is True:
+        contest_folder = "evaluation_problems"
+        artifact_filepath_wildcards = "./evaluation_artifacts/execution_*/*/*"
+    else:
+        artifact_filepath_wildcards = "./execution_*/*/*"
 
     folders = glob.glob(f"./{contest_folder}/*/")  # only select folders
 
-    problem_names = [os.path.basename(os.path.normpath(folder)) for folder in folders]
-    problem_mapping = {problem_name_to_problem_code(problem_name): problem_name for problem_name in problem_names}
-
     # Get all files in execution_full_out
-    files = glob.glob(f"./execution_*/*/*")  # get all files, e.g., 'fall_in_line' and '000'
+    files = glob.glob(artifact_filepath_wildcards)  # get all files, e.g., 'fall_in_line' and '000'
 
     # Extract execution type, problem name, and file ID
     file_info = [
@@ -27,6 +31,9 @@ def get_current_status(contest_folder):
 
     if file_info == []:
         return pd.DataFrame(), pd.DataFrame()
+
+    problem_names = [os.path.basename(os.path.normpath(folder)) for folder in folders]
+    problem_mapping = {problem_name_to_problem_code(problem_name): problem_name for problem_name in problem_names}
 
     # Create a DataFrame from file_info and files
     df = pd.DataFrame(file_info, columns=['execution_type', 'problem_code', 'solution_id'])
@@ -258,7 +265,18 @@ def truncate(text, length):
 
 import datetime
 
-def process_row(row):
+def select_solution(solutions_dict: dict[str, Any]):
+    # solutions_dict contains
+    # solution_id: str
+    # statement: str
+    # sample_in: str
+    # sample_out: str
+    # full_in: str
+    # problem_code: str
+    # timestring: str
+    # execution_response: list[str]
+    # execution_sample_out: list[str]
+    # execution_full_out: list[str]
 
     solutions_string = "\n\n".join(
         solution_string.format(
@@ -267,21 +285,21 @@ def process_row(row):
             execution_sample_out = truncate(execution_sample_out, 2000),
             execution_full_out = truncate(execution_full_out, 2000),
         ) for solution_id, execution_response, execution_sample_out, execution_full_out in zip(
-            row["solution_id"],
-            row["execution_response"],
-            row["execution_sample_out"],
-            row["execution_full_out"],
+            solutions_dict["solution_id"],
+            solutions_dict["execution_response"],
+            solutions_dict["execution_sample_out"],
+            solutions_dict["execution_full_out"],
         )
     )
 
     with open('./hash_analyzing', 'a') as f:
-        f.write(row["hash"] + "\n")
+        f.write(solutions_dict["hash"] + "\n")
 
     judgment_instructions = analysis_prompt.format(
-        statement = truncate(row["statement"], 40000),
-        sample_in = truncate(row["sample_in"], 10000),
-        sample_out = truncate(row["sample_out"], 10000),
-        full_in = truncate(row["full_in"], 10000),
+        statement = truncate(solutions_dict["statement"], 40000),
+        sample_in = truncate(solutions_dict["sample_in"], 10000),
+        sample_out = truncate(solutions_dict["sample_out"], 10000),
+        full_in = truncate(solutions_dict["full_in"], 10000),
         solutions_string = solutions_string,
     )
 
@@ -291,8 +309,8 @@ def process_row(row):
 
     selected_solution_id = extract_index_id(openai_judgment)
 
-    problem_code = row["problem_code"]
-    timestring = row["timestring"]
+    problem_code = solutions_dict["problem_code"]
+    timestring = solutions_dict["timestring"]
 
     # Define the source file paths for the code and output
     response_src = f"execution_response/{problem_code}/{selected_solution_id}.md"
@@ -321,7 +339,7 @@ def process_row(row):
         shutil.copy(output_src, output_dst)
 
     with open('./hash_analyzed', 'a') as f:
-        f.write(row["hash"] + "\n")
+        f.write(solutions_dict["hash"] + "\n")
 
     with open(judgement_dst, 'w') as f:
         f.write(openai_judgment)
