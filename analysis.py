@@ -149,7 +149,7 @@ def get_current_status(contest_folder, evaluation=False):
         [
             'problem_code', 'problem_name', 'statement', 'sample_in', 'sample_out', 'full_in'
         ]
-    ).agg(list).reset_indsex()
+    ).agg(list).reset_index()
 
     # Compute MD5 hash of concatenated execution fields
     aggregated_df["hash"] = aggregated_df.apply(
