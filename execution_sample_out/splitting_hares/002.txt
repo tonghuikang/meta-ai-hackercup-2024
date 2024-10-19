@@ -1,0 +1,12 @@
+Case #1: Yes
+1 2 7 6 8
+Case #2: Yes
+4 1 2 3 5
+Case #3: Yes
+2 4 3 6 5
+Case #4: Yes
+2 3 1 6 4 5
+Case #5: Yes
+1 2 10 11 12
+Case #6: Yes
+7 2 11 10 16 19 21
