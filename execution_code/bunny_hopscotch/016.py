@@ -1,0 +1,121 @@
+import sys
+import numpy as np
+
+def main():
+    import sys
+    import threading
+    def run():
+        T = int(sys.stdin.readline())
+        for test_case in range(1, T + 1):
+            R,C,K = map(int, sys.stdin.readline().split())
+            grid = []
+            for _ in range(R):
+                grid.append(list(map(int, sys.stdin.readline().split())))
+            grid = np.array(grid)
+            N = R * C
+
+            # Total ordered pairs with different owners
+            # First compute total ordered pairs regardless of owners
+            # For score, we define a range from 0 to max(R,C)
+            # Implement binary search over possible scores
+            low = 0
+            high = max(R, C)
+            # Precompute owner counts
+            unique_owners, counts = np.unique(grid, return_counts=True)
+            owner_counts = dict(zip(unique_owners, counts))
+            # To handle positions by owner
+            from collections import defaultdict
+            owner_positions = defaultdict(list)
+            for i in range(R):
+                for j in range(C):
+                    owner_positions[grid[i,j]].append((i,j))
+            # Precompute prefix sum for grid
+            # We will use inclusive prefix sum for 2D
+            # Compute total pairs with score <= S
+            # To count total pairs with score <= S:
+            # For each cell, number of cells within S steps is (min(R, S)) and similar
+            # But to do it efficiently, use convolution-like approach
+            # Alternatively, compute the total number by:
+            # total = N * (2S+1)**2 - adjustments for borders
+            # Compute for total ordered pairs
+            # total_pairs = sum of (number of cells within S of each cell)
+            # Which is equal to sum over i,j of number of cells in (max(|i2-i1|, |j2-j1|) <= S)
+            # Which can be calculated as:
+            # total_pairs = N * (2*S +1)**2
+            # Then subtract the cells that go out of the grid
+            # For rows:
+            total_pairs = 0
+            # To compute number of shifts where max(|dr|, |dc|) <= S
+            # it's equivalent to the number of dr in [-S,S] and dc in [-S,S]
+            total_pairs = N * (2*S := 2*max(R,C)+1)**2  # placeholder
+            # But more accurately, for a given S, compute the number of ordered pairs with score <= S
+            # Let's implement a function to compute it
+            def count_total_pairs(S):
+                # Total ordered pairs with score <= S
+                # For rows, the number of possible dr is from -S to S
+                # Similarly for columns
+                # Number of possible dr: min(R, S)
+                # Similarly for dc
+                # To compute the total number, it's sum over all possible dr and dc of (R - |dr|)*(C - |dc|)
+                # Excluding dr=0 and dc=0 for ordered pairs
+                dr = np.arange(-S, S+1)
+                dc = np.arange(-S, S+1)
+                # Number of possible dr for each dr
+                valid_dr = R - np.abs(dr)
+                valid_dc = C - np.abs(dc)
+                pairs = np.outer(valid_dr, valid_dc).sum()
+                # Subtract N for (dr=0,dc=0)
+                pairs -= N
+                return pairs
+
+            # Function to count same owner pairs with score <= S
+            def count_same_owner_pairs(S):
+                total = 0
+                for owner, positions in owner_positions.items():
+                    if len(positions) <=1:
+                        continue
+                    # Convert positions to numpy array
+                    pos = np.array(positions)
+                    # To count number of ordered pairs with max distance <= S
+                    # Sort by row and column
+                    pos_sorted = pos[np.argsort(pos[:,0])]
+                    # For each position, find the range of rows within S
+                    # Then within those, find columns within S
+                    # This is O(n^2) in the worst case, but can be optimized
+                    # Here we use a sliding window approach
+                    n = len(pos_sorted)
+                    j = 0
+                    for i in range(n):
+                        while j < n and pos_sorted[j][0] - pos_sorted[i][0] <= S:
+                            j +=1
+                        # Now all positions from i to j-1 have row difference <= S
+                        # Now within these, count the number with column difference <= S
+                        # Extract the relevant columns
+                        cols = pos_sorted[i:j,1]
+                        # Use binary search to find the range within cols where |col - cols[i]| <= S
+                        # Since cols are sorted by row, not column, we need to sort them
+                        # To optimize, sort the window by column
+                        window = np.sort(cols)
+                        start = np.searchsorted(window, pos_sorted[i][1] - S, side='left')
+                        end = np.searchsorted(window, pos_sorted[i][1] + S, side='right')
+                        total += (end - start -1)  # exclude the same cell
+                return total
+
+            # Binary search
+            low = 0
+            high = max(R, C)
+            while low < high:
+                mid = (low + high) //2
+                total = count_total_pairs(mid)
+                same = count_same_owner_pairs(mid)
+                diff = total - same
+                if diff >= K:
+                    high = mid
+                else:
+                    low = mid +1
+            result = low
+            print(f"Case #{test_case}: {result}")
+    threading.Thread(target=run).start()
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,7 @@
+An error happened during execution:
+Traceback (most recent call last):
+  File "/tmp/tmpi50_kgcg.py", line 145, in <module>
+    main()
+  File "/tmp/tmpi50_kgcg.py", line 118, in main
+    for w in assign_below[-(needed - len(assign_above)):]:
+UnboundLocalError: local variable 'assign_below' referenced before assignment

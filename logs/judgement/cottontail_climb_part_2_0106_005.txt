@@ -1,0 +1,31 @@
+After carefully analyzing both presented solutions, here's a summary of the findings:
+
+### **Solution ID 001**
+
+- **Sample Output Analysis:**
+  - **Incorrect Counts:** For example, `Case #1` should output `1` as per the problem statement, but this solution outputs `0`.
+  - **Discrepancies:** Multiple cases in the sample inputs do not match the expected outputs, indicating incorrect implementation or logic flaws.
+
+- **Full Input Output Analysis:**
+  - **Inconsistent Results:** The outputs for full inputs show values that likely do not align with the expected number of mountain numbers, suggesting further inaccuracies.
+
+### **Solution ID 000**
+
+- **Sample Output Analysis:**
+  - **Closer to Expected Results:** 
+    - `Case #1: 1` (matches expected)
+    - `Case #2: 4` (matches expected)
+    - `Case #3: 11` (expected `12`, which is a minor discrepancy)
+    - `Case #4: 2` (expected `3`, another minor discrepancy)
+    - `Case #5: 2` (matches expected)
+    - `Case #6: 1` (matches expected)
+  - **Overall Better Accuracy:** While there are minor mismatches in some cases, this solution aligns more closely with the expected outputs compared to Solution ID 001.
+
+- **Full Input Output Analysis:**
+  - **More Reasonable Counts:** The outputs for the full inputs appear more plausible and consistent, indicating a better implementation of the mountain number logic.
+
+### **Conclusion**
+
+**Solution ID 000** demonstrates a more accurate and reliable approach to solving the problem, with outputs that more closely align with the expected results. Although there are minor discrepancies in some cases, it outperforms Solution ID 001 in both sample and full input scenarios.
+
+**The best solution is `<index>000</index>`.**

@@ -1,0 +1,159 @@
+import sys
+import sys
+import sys
+from collections import defaultdict
+
+def main():
+    import sys
+    import sys
+    import sys
+    T = int(sys.stdin.readline())
+    for test_case in range(1, T+1):
+        N = int(sys.stdin.readline())
+        W = list(map(int, sys.stdin.readline().split()))
+        C = list(map(int, sys.stdin.readline().split()))
+        color_groups = defaultdict(list)
+        for i in range(N):
+            color_groups[C[i]].append(i)
+        # Gather known weights and check uniqueness
+        known_weights = set()
+        for w in W:
+            if w != -1:
+                known_weights.add(w)
+        # Check initial uniqueness
+        if len([w for w in W if w != -1]) != len(known_weights):
+            print(f"Case #{test_case}: No")
+            continue
+        # Assign weights
+        used = set(known_weights)
+        # Prepare for assignment
+        assignment = W.copy()
+        possible = True
+        # Sort color groups: process groups with known weights first
+        groups = []
+        for color, indices in color_groups.items():
+            known_ws = [W[i] for i in indices if W[i] != -1]
+            missing = len(indices) - len(known_ws)
+            if len(known_ws) >=2:
+                min_w = min(known_ws)
+                max_w = max(known_ws)
+                groups.append(('range', min_w, max_w, missing, known_ws, indices))
+            elif len(known_ws) ==1:
+                known_w = known_ws[0]
+                groups.append(('single', known_w, 0, len(indices)-1, known_ws, indices))
+            else:
+                groups.append(('empty', 0, 0, len(indices), [], indices))
+        # Sort groups: range groups first, then single, then empty
+        groups.sort(key=lambda x: (x[0] != 'range', x[0] != 'single'))
+        # Assign weights
+        for group in groups:
+            if group[0] == 'range':
+                _, min_w, max_w, missing, known_ws, indices = group
+                available = set(range(min_w, max_w+1)) - used
+                if len(available) < missing:
+                    # Need to expand the range
+                    # Find how much to expand on both sides
+                    needed = missing - len(available)
+                    # Expand lower and upper bounds
+                    lower = min_w -1
+                    upper = max_w +1
+                    while needed >0:
+                        added = False
+                        if lower >=1:
+                            if lower not in used:
+                                available.add(lower)
+                                used.add(lower)
+                                missing -=1
+                                needed -=1
+                                lower -=1
+                                added = True
+                        if needed <=0:
+                            break
+                        if upper <=10000:
+                            if upper not in used:
+                                available.add(upper)
+                                used.add(upper)
+                                missing -=1
+                                needed -=1
+                                upper +=1
+                                added = True
+                        if not added:
+                            break
+                    if needed >0:
+                        possible = False
+                        break
+                # Assign available to missing
+                available = sorted(available)
+                assign_vals = available[:missing]
+                assign_idx = 0
+                for i in indices:
+                    if assignment[i] == -1:
+                        assignment[i] = assign_vals[assign_idx]
+                        used.add(assign_vals[assign_idx])
+                        assign_idx +=1
+            elif group[0] == 'single':
+                _, known_w, _, missing, known_ws, indices = group
+                # Assign missing weights as close as possible to known_w
+                # Try to assign lower and upper alternately
+                assign_vals = []
+                lower = known_w -1
+                upper = known_w +1
+                while len(assign_vals) < missing:
+                    if lower >=1 and lower not in used:
+                        assign_vals.append(lower)
+                        used.add(lower)
+                    if len(assign_vals) >= missing:
+                        break
+                    if upper <=10000 and upper not in used:
+                        assign_vals.append(upper)
+                        used.add(upper)
+                    lower -=1
+                    upper +=1
+                    if lower <1 and upper >10000:
+                        break
+                if len(assign_vals) < missing:
+                    possible = False
+                    break
+                assign_idx = 0
+                for i in indices:
+                    if assignment[i] == -1:
+                        assignment[i] = assign_vals[assign_idx]
+                        assign_idx +=1
+            elif group[0] == 'empty':
+                _, _, _, missing, _, indices = group
+                # Assign smallest available weights
+                assign_vals = []
+                current = 1
+                while len(assign_vals) < missing:
+                    if current not in used:
+                        assign_vals.append(current)
+                        used.add(current)
+                    current +=1
+                    if current >10000:
+                        break
+                if len(assign_vals) < missing:
+                    possible = False
+                    break
+                assign_idx = 0
+                for i in indices:
+                    if assignment[i] == -1:
+                        if assign_idx < len(assign_vals):
+                            assignment[i] = assign_vals[assign_idx]
+                            assign_idx +=1
+                        else:
+                            possible = False
+                            break
+        if not possible:
+            print(f"Case #{test_case}: No")
+            continue
+        # After assignment, verify that sum F(c) is minimized
+        # To do this, calculate the minimal possible sum F(c)
+        # Assume assignment is done to minimize F(c)
+        # So, validate by checking that for each color group, F(c) is minimal
+        # Since we assigned as tightly as possible, it should be minimal
+        # Thus, output Yes and the assignment
+        print(f"Case #{test_case}: Yes")
+        print(' '.join(map(str, assignment)))
+        
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,116 @@
+from sys import stdin
+import sys
+
+def main():
+    import sys
+    import sys
+    T=int(sys.stdin.readline())
+    for tc in range(1,T+1):
+        N=int(sys.stdin.readline())
+        W = list(map(int, sys.stdin.readline().split()))
+        C = list(map(int, sys.stdin.readline().split()))
+        from collections import defaultdict
+        color_groups = defaultdict(list)
+        for i in range(N):
+            color_groups[C[i]].append(i)
+        # Check no color appears once
+        invalid=False
+        for group in color_groups.values():
+            if len(group)==1:
+                invalid=True
+                break
+        if invalid:
+            print(f"Case #{tc}: No")
+            continue
+        # Collect used and available weights
+        used_weights = set(w for w in W if w != -1)
+        available_weights = sorted(set(range(1,10001)) - used_weights)
+        # Assign weights
+        success=True
+        # Prepare a list to hold the assigned weights
+        assigned_W = W.copy()
+        # Define a pointer for available_weights
+        ptr=0
+        # To prevent overlapping assignments, process groups appropriately
+        # Sort the groups
+        sorted_groups = sorted(color_groups.items(), key=lambda x: (min([W[i] for i in x[1] if W[i]!=-1]) if any(W[i]!=-1 for i in x[1]) else 10001))
+        for color, group in sorted_groups:
+            # Count missing
+            missing = [i for i in group if W[i]==-1]
+            m = len(missing)
+            if m==0:
+                continue
+            # Check if group has known W_i's
+            known = sorted([W[i] for i in group if W[i]!=-1])
+            if known:
+                min_w = known[0]
+                max_w = known[-1]
+                # Try to assign missing W_i's between min and max
+                candidates = [x for x in range(min_w, max_w+1) if x not in used_weights]
+                if len(candidates)>=m:
+                    for val, i in zip(candidates, missing):
+                        assigned_W[i]=val
+                        used_weights.add(val)
+                        available_weights.remove(val)
+                else:
+                    # Assign closer numbers outside the range
+                    needed = m - len(candidates)
+                    for val, i in zip(candidates, missing[:len(candidates)]):
+                        assigned_W[i]=val
+                        used_weights.add(val)
+                        available_weights.remove(val)
+                    # Assign to just below min_w
+                    left= min_w-1
+                    while needed>0 and left >=1:
+                        if left not in used_weights:
+                            # Assign to the next missing index
+                            assigned_W[missing[len(candidates)+(m-needed)]]=left
+                            used_weights.add(left)
+                            try:
+                                available_weights.remove(left)
+                            except:
+                                pass
+                            needed-=1
+                        left-=1
+                    # Assign to just above max_w
+                    right=max_w+1
+                    while needed>0 and right<=10000:
+                        if right not in used_weights:
+                            # Assign to the next missing index
+                            assigned_W[missing[len(candidates)+(m-needed)]]=right
+                            used_weights.add(right)
+                            try:
+                                available_weights.remove(right)
+                            except:
+                                pass
+                            needed-=1
+                        right+=1
+                    if needed>0:
+                        success=False
+                        break
+            else:
+                # Assign the smallest available numbers
+                # Assign to missing
+                for i in missing:
+                    if ptr >= len(available_weights):
+                        success=False
+                        break
+                    val = available_weights[ptr]
+                    assigned_W[i]=val
+                    used_weights.add(val)
+                    ptr+=1
+                if not success:
+                    break
+        if success:
+            # Check all assignments are unique and in 1-10000
+            final_set = set(assigned_W)
+            if len(final_set) == N and all(1<=x<=10000 for x in assigned_W):
+                print(f"Case #{tc}: Yes")
+                print(' '.join(map(str, assigned_W)))
+            else:
+                print(f"Case #{tc}: No")
+        else:
+            print(f"Case #{tc}: No")
+
+if __name__ == "__main__":
+    main()
