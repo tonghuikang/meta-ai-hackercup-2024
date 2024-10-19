@@ -2,10 +2,28 @@ import glob
 import os
 import pandas as pd
 import hashlib
+import shutil
+import datetime
 
 from worker import problem_name_to_problem_code
 from functools import cache
 from typing import Any
+
+
+def save_submission(problem_code, solution_id, is_correct=False):
+
+    os.makedirs(f'evaluation_artifacts/execution_sample_out/{problem_code}', exist_ok=True)
+    os.makedirs(f'evaluation_artifacts/execution_response/{problem_code}', exist_ok=True)
+    os.makedirs(f'evaluation_artifacts/execution_full_out/{problem_code}', exist_ok=True)
+    os.makedirs(f'evaluation_artifacts/execution_code/{problem_code}', exist_ok=True)
+
+    datetime_string = datetime.datetime.now().strftime("%d-%H%M")
+    for filepath in glob.glob(f"execution_*/{problem_code}/{solution_id}.*"):
+        new_solution_id = datetime_string + "-" + solution_id
+        if is_correct:
+            new_solution_id += "-correct"
+        new_filepath = "evaluation_artifacts/" + filepath.replace(solution_id, new_solution_id)
+        shutil.copy(filepath, new_filepath)
 
 
 def get_current_status(contest_folder, evaluation=False):
@@ -155,7 +173,7 @@ def get_current_status(contest_folder, evaluation=False):
             return 'not_analyzed'
 
     # Apply the function to create the 'status' column
-    aggregated_df['status'] = aggregated_df.apply(determine_status, axis=1)        
+    aggregated_df['status'] = aggregated_df.apply(determine_status, axis=1)
 
     timestring = datetime.datetime.now().strftime("%M%S")
     aggregated_df['timestring'] = timestring
@@ -250,7 +268,7 @@ import re
 
 def extract_index_id(text):
     # Use regex to find content within <index> and </index>
-    match = re.search(r'<index>(\d+)</index>', text)
+    match = re.search(r'<index>([\w\-]+)</index>', text)
     if match:
         return match.group(1)
     return None

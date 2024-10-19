@@ -1,6 +1,6 @@
 import re
 import os
-from textwrap import dedent
+import shutil
 
 import modal
 
@@ -86,6 +86,12 @@ def solve(contest_folder, password, problem_name, solution_id):
         sample_out = f.read()
     with open(f"{contest_folder}/{problem_name}/full_in.txt") as f:
         full_in = f.read()
+
+    shutil.copytree(
+        f"{contest_folder}/{problem_name}/",
+        f"evaluation_problems/{problem_name}/",
+        dirs_exist_ok=True
+    )
 
     prompt = generation_prompt.format(statement=statement, sample_in=sample_in, sample_out=sample_out)
 
