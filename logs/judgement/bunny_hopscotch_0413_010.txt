@@ -1,0 +1,20 @@
+Based on a thorough analysis of the presented solutions, the best solution is **Solution ID 008**. Here's a summary of the findings:
+
+1. **Correctness:**
+   - **Sample Input Accuracy:** Solution ID 008 correctly matches the expected sample outputs.
+   - **Algorithmic Approach:** It employs an efficient binary search combined with optimized counting of valid hops, ensuring it handles large inputs within the given constraints.
+
+2. **Efficiency:**
+   - **Optimized Counting:** The solution effectively counts valid and invalid hops without enumerating all possible pairs, leveraging combinatorial mathematics and efficient data structures.
+   - **Scalability:** Designed to handle large grids (up to \(800 \times 800\)) and multiple test cases efficiently.
+
+3. **Implementation:**
+   - **Clear Logic:** The code is well-structured, with clear separation of functions for counting total pairs and same-owner pairs.
+   - **Performance:** Utilizes Python's `bisect` module for efficient searching, ensuring quick execution even with large datasets.
+
+4. **Output Accuracy:**
+   - **Consistent Results:** Produces correct outputs for both sample and full inputs, aligning with the problem's requirements.
+
+Given these factors, **Solution ID 008** stands out as the most reliable and efficient among the presented solutions.
+
+**The best solution is <index>008</index>.**

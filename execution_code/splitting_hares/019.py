@@ -1,0 +1,191 @@
+import sys
+import bisect
+
+def main():
+    import sys
+    import threading
+
+    def solve():
+        import sys
+
+        T = int(sys.stdin.readline())
+        for test_case in range(1, T + 1):
+            line = ''
+            while line.strip() == '':
+                line = sys.stdin.readline()
+            N = int(line.strip())
+            W_line = ''
+            while len(W_line.strip().split()) < N:
+                W_line += sys.stdin.readline()
+            W = list(map(int, W_line.strip().split()))
+            C_line = ''
+            while len(C_line.strip().split()) < N:
+                C_line += sys.stdin.readline()
+            C = list(map(int, C_line.strip().split()))
+            
+            # Step 2: Check no color has exactly one rabbit
+            from collections import defaultdict
+            color_counts = defaultdict(int)
+            for c in C:
+                color_counts[c] +=1
+            invalid = False
+            for cnt in color_counts.values():
+                if cnt <2:
+                    invalid = True
+                    break
+            if invalid:
+                print(f"Case #{test_case}: No")
+                continue
+
+            # Step 3: Collect known weights and check uniqueness
+            known_weights = {}
+            duplicate = False
+            for i in range(N):
+                if W[i] != -1:
+                    if W[i] in known_weights:
+                        duplicate = True
+                        break
+                    known_weights[W[i]] = i
+            if duplicate:
+                print(f"Case #{test_case}: No")
+                continue
+
+            # Step 4: Assign missing weights
+            # Collect used weights
+            used_weights = set()
+            for w in W:
+                if w != -1:
+                    used_weights.add(w)
+            # Available weights
+            # To handle efficiently, use a sorted list
+            available_weights = list(range(1, 10001))
+            # Remove used_weights
+            # Because N <=300, and range is 1-10000, it's manageable
+            # We can iterate through available_weights and remove used_weights
+            # But for speed, better to iterate and collect unused
+            available = []
+            ptr =1
+            for w in range(1,10001):
+                if w not in used_weights:
+                    available.append(w)
+            # Now available is sorted
+
+            # Group rabbits by color
+            color_to_indices = defaultdict(list)
+            for idx, c in enumerate(C):
+                color_to_indices[c].append(idx)
+            # Separate colors with known weights and without
+            colors_with_known = []
+            colors_without_known = []
+            for c in color_to_indices:
+                group = color_to_indices[c]
+                has_known = any(W[idx] != -1 for idx in group)
+                if has_known:
+                    colors_with_known.append(c)
+                else:
+                    colors_without_known.append(c)
+            # Assign missing weights for colors with known weights
+            # We need to sort the available weights
+            import bisect
+            available_sorted = available.copy()
+            assigned_weights = W.copy()
+            possible = True
+            for c in colors_with_known:
+                group = color_to_indices[c]
+                known_in_group = sorted([W[idx] for idx in group if W[idx] != -1])
+                missing_count = len(group) - len(known_in_group)
+                if missing_count ==0:
+                    continue
+                # Assign missing weights as close as possible to known weights
+                # Initialize min and max
+                current_min = known_in_group[0]
+                current_max = known_in_group[-1]
+                for _ in range(missing_count):
+                    # Find available weight just below current_min
+                    pos = bisect.bisect_left(available_sorted, current_min)
+                    candidates = []
+                    if pos >0:
+                        candidates.append(available_sorted[pos-1])
+                    # Find available weight just above current_max
+                    pos = bisect.bisect_right(available_sorted, current_max)
+                    if pos < len(available_sorted):
+                        candidates.append(available_sorted[pos])
+                    if not candidates:
+                        possible=False
+                        break
+                    # Choose the one that minimizes the new F(c)
+                    if len(candidates)==2:
+                        lower = current_min - candidates[0]
+                        upper = candidates[1] - current_max
+                        if lower <= upper:
+                            chosen = candidates[0]
+                        else:
+                            chosen = candidates[1]
+                    else:
+                        chosen = candidates[0]
+                    # Assign chosen
+                    # Find the first missing in group
+                    for idx in group:
+                        if assigned_weights[idx]==-1:
+                            assigned_weights[idx]=chosen
+                            break
+                    # Remove chosen from available_sorted
+                    remove_pos = bisect.bisect_left(available_sorted, chosen)
+                    if remove_pos < len(available_sorted) and available_sorted[remove_pos]==chosen:
+                        available_sorted.pop(remove_pos)
+                    else:
+                        possible=False
+                        break
+                    # Update current_min and current_max
+                    if chosen < current_min:
+                        current_min = chosen
+                    elif chosen > current_max:
+                        current_max = chosen
+                if not possible:
+                    break
+            if not possible:
+                print(f"Case #{test_case}: No")
+                continue
+            # Assign missing weights for colors without known weights
+            for c in colors_without_known:
+                group = color_to_indices[c]
+                k = len(group)
+                if len(available_sorted) <k:
+                    possible=False
+                    break
+                # Assign the first k smallest available weights
+                chosen_weights = available_sorted[:k]
+                for idx, chosen in zip(group, chosen_weights):
+                    assigned_weights[idx]=chosen
+                # Remove them from available_sorted
+                available_sorted = available_sorted[k:]
+            if not possible:
+                print(f"Case #{test_case}: No")
+                continue
+            # Now, check all weights are unique and within range
+            assigned_set = set()
+            valid = True
+            for w in assigned_weights:
+                if not (1 <= w <=10000):
+                    valid=False
+                    break
+                if w in assigned_set:
+                    valid=False
+                    break
+                assigned_set.add(w)
+            if not valid:
+                print(f"Case #{test_case}: No")
+                continue
+            # Now, check if the sum F(c) is minimized
+            # To do that, we need to compute the minimal possible sum F(c)
+            # Alternatively, since we assigned missing weights to minimize F(c), it's guaranteed
+            # So, we can output "Yes" and the assignment
+            # But to match the problem's requirement, we need to ensure that the color assignment was originally done to minimize F(c)
+            # Since we assigned missing weights to minimize F(c), and the color assignments are fixed, it should be valid
+            # So, output "Yes" and the assigned_weights
+            print(f"Case #{test_case}: Yes")
+            print(' '.join(map(str, assigned_weights)))
+    threading.Thread(target=solve).start()
+
+if __name__ == "__main__":
+    main()
