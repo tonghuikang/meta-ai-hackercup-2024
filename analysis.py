@@ -226,7 +226,7 @@ e.g. The best solution is <index>004</index>.
 
 solution_string = """
 <solution>
-This is solution id <index>{solution_id}</index>
+This is solution id <index>{hashed_id}</index>
 
 This is a presented solution
 
@@ -282,10 +282,11 @@ def truncate(text, length):
     assert length >= 100
     if len(text) <= length:
         return text
-    return text[:2*length // 3] + " truncated " + text[-length // 3:]
+    return text[:2*length // 3] + f" <truncated, the total length was {len(text)}> " + text[-length // 3:]
 
 
 import datetime
+import random
 
 def select_solution(solutions_dict: dict[str, Any]):
     # solutions_dict contains
@@ -300,9 +301,18 @@ def select_solution(solutions_dict: dict[str, Any]):
     # execution_sample_out: list[str]
     # execution_full_out: list[str]
 
+    solution_ids = list(solutions_dict["solution_id"])
+    random.shuffle(solution_ids)
+    solution_id_to_hashed_id = {}
+    hashed_id_to_solution_id = {}
+    for i, solution_id in enumerate(solution_ids):
+        hashed_id = f"{i:03}"
+        solution_id_to_hashed_id[solution_id] = hashed_id
+        hashed_id_to_solution_id[hashed_id] = solution_id
+
     solutions_string = "\n\n".join(
         solution_string.format(
-            solution_id = solution_id,
+            hashed_id = solution_id_to_hashed_id[solution_id],
             execution_response = truncate(execution_response, 10000),
             execution_sample_out = truncate(execution_sample_out, 2000),
             execution_full_out = truncate(execution_full_out, 2000),
@@ -329,7 +339,8 @@ def select_solution(solutions_dict: dict[str, Any]):
 
     openai_judgment = call_openai(judgment_instructions)
 
-    selected_solution_id = extract_index_id(openai_judgment)
+    selected_hashed_id = extract_index_id(openai_judgment)
+    selected_solution_id = hashed_id_to_solution_id[selected_hashed_id]
 
     problem_code = solutions_dict["problem_code"]
     timestring = solutions_dict["timestring"]
@@ -376,4 +387,5 @@ def select_solution(solutions_dict: dict[str, Any]):
     with open(judgement_dst, 'w') as f:
         f.write(openai_judgment)
 
+    print(f"Selected solution {selected_solution_id} for {problem_code}")
     return openai_judgment, selected_solution_id
