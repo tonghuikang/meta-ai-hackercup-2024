@@ -133,8 +133,12 @@ def get_current_status(contest_folder, evaluation=False):
     df_subset_to_aggregate = df_grouped[
         (~(df_grouped["execution_sample_out"] == ""))
         & (~(df_grouped["execution_full_out"] == ""))
-        & (~df_grouped["execution_sample_out"].str.contains("An error happened during execution:"))
-        & (~df_grouped["execution_full_out"].str.contains("An error happened during execution:"))
+        & (~(df_grouped["execution_sample_out"].is_na()))
+        & (~(df_grouped["execution_full_out"].is_na()))
+    ]
+    df_subset_to_aggregate = df_subset_to_aggregate[
+        (~(df_grouped["execution_sample_out"].str.contains("An error happened during execution:")))
+        & (~(df_grouped["execution_full_out"].str.contains("An error happened during execution:")))
     ]
 
     # Aggregate to problem
