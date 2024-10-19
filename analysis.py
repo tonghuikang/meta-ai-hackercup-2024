@@ -133,12 +133,12 @@ def get_current_status(contest_folder, evaluation=False):
     df_subset_to_aggregate = df_grouped[
         (~(df_grouped["execution_sample_out"] == ""))
         & (~(df_grouped["execution_full_out"] == ""))
-        & (~(df_grouped["execution_sample_out"].is_na()))
-        & (~(df_grouped["execution_full_out"].is_na()))
+        & (~(df_grouped["execution_sample_out"].isna()))
+        & (~(df_grouped["execution_full_out"].isna()))
     ]
     df_subset_to_aggregate = df_subset_to_aggregate[
-        (~(df_grouped["execution_sample_out"].str.contains("An error happened during execution:")))
-        & (~(df_grouped["execution_full_out"].str.contains("An error happened during execution:")))
+        (~(df_subset_to_aggregate["execution_sample_out"].str.contains("An error happened during execution:")))
+        & (~(df_subset_to_aggregate["execution_full_out"].str.contains("An error happened during execution:")))
     ]
 
     # Aggregate to problem
@@ -340,13 +340,17 @@ def select_solution(solutions_dict: dict[str, Any]):
     output_src = f"execution_full_out/{problem_code}/{selected_solution_id}.txt"
 
     response_dst = f"response/{problem_code}_{timestring}_{selected_solution_id}.md"
-    code_dst = f"source/{problem_code}_{timestring}_{selected_solution_id}.py"
-    output_dst = f"output/{problem_code}_{timestring}_{selected_solution_id}.txt"
+    code_dst = f"source/{problem_code}.py"
+    output_dst = f"output/{problem_code}.txt"
+    code_history_dst = f"source_history/{problem_code}_{timestring}_{selected_solution_id}.py"
+    output_history_dst = f"output_history/{problem_code}_{timestring}_{selected_solution_id}.txt"
     judgement_dst = f"logs/judgement/{problem_code}_{timestring}_{selected_solution_id}.txt"
 
+    os.makedirs(f'response', exist_ok=True)
     os.makedirs(f'output', exist_ok=True)
     os.makedirs(f'source', exist_ok=True)
-    os.makedirs(f'response', exist_ok=True)
+    os.makedirs(f'output_history', exist_ok=True)
+    os.makedirs(f'source_history', exist_ok=True)
     os.makedirs(f'logs/judgement', exist_ok=True)
 
     import shutil
@@ -359,6 +363,12 @@ def select_solution(solutions_dict: dict[str, Any]):
 
     if os.path.exists(output_src):
         shutil.copy(output_src, output_dst)
+
+    if os.path.exists(code_src):
+        shutil.copy(code_src, code_history_dst)
+
+    if os.path.exists(output_src):
+        shutil.copy(output_src, output_history_dst)
 
     with open('./hash_analyzed', 'a') as f:
         f.write(solutions_dict["hash"] + "\n")
