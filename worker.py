@@ -106,7 +106,7 @@ def solve(contest_folder, password, problem_name, solution_id):
     with open(f"execution_code/{problem_code}/{solution_id}.py", "w") as f:
         f.write(python_code)
 
-    execute_code = modal.Function.lookup("hackercup2", "execute_code")
+    execute_code = modal.Function.lookup("hackercup3", "execute_code")
 
     sample_executed_output, sample_executed_error = execute_code.remote(python_code, sample_in)
     if sample_executed_error:

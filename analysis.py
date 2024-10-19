@@ -141,12 +141,15 @@ def get_current_status(contest_folder, evaluation=False):
         & (~(df_subset_to_aggregate["execution_full_out"].str.contains("An error happened during execution:")))
     ]
 
+    if len(df_subset_to_aggregate) == 0:
+        return df_grouped, pd.DataFrame()
+
     # Aggregate to problem
     aggregated_df = df_subset_to_aggregate.groupby(
         [
             'problem_code', 'problem_name', 'statement', 'sample_in', 'sample_out', 'full_in'
         ]
-    ).agg(list).reset_index()
+    ).agg(list).reset_indsex()
 
     # Compute MD5 hash of concatenated execution fields
     aggregated_df["hash"] = aggregated_df.apply(

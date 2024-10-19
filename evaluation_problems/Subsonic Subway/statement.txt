@@ -22,7 +22,7 @@ For the \(i\)th test case, print "`Case #i:` " followed by the minimum constant 
 # Sample Explanation
 In the first case, Sonic needs to reach the station $3$ miles away within $10$ seconds, so he can run at a speed of $3/10 = 0.3$ miles per second.
 
-The second case is depicted below, with delivery windows in green, and Sonic's path in blue. The last station's delivery window is wide, so the third station is the one that Sonic really has to run to get to. It's $3$ miles away and he needs to get there within $2$ seconds, so he'll run at a speed of $3/2 = 1.5$ miles per second.
+The second case is depicted below, with delivery windows in green, and Sonic's path in blue. The last station's delivery is wide, so the third station is the one that Sonic really has to run to get to. It's $3$ miles away and he needs to get there within $2$ seconds, so he'll run at a speed of $3/2 = 1.5$ miles per second.
 
 {{PHOTO_ID:558996120123959|WIDTH:400}}
 

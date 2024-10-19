@@ -58,10 +58,10 @@ image = Image.debian_slim().pip_install(
 # TODO also upload encrypted content materials
 
 
-app = App("hackercup2")
+app = App("hackercup3")
 
 
-@app.function(image=image, timeout=30, container_idle_timeout=1200)
+@app.function(image=image, timeout=90, container_idle_timeout=1200)
 def execute_code(code_str, input_str) -> tuple[str, str]:
     with tempfile.NamedTemporaryFile('w+', suffix='.py', delete=False) as tmp_file:
         tmp_file.write(code_str)
@@ -73,7 +73,7 @@ def execute_code(code_str, input_str) -> tuple[str, str]:
             input=input_str,
             text=True,
             capture_output=True,
-            timeout=15  # Set a timeout to prevent infinite execution
+            timeout=60  # Set a timeout to prevent infinite execution
         )
         if result.stderr:
             return result.stdout, result.stderr
