@@ -1,8 +1,0 @@
-Case #1: Yes
-1 2 7 6 8
-Case #2: No
-Case #3: Yes
-2 4 3 6 5
-Case #4: No
-Case #5: No
-Case #6: No

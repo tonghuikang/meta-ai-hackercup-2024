@@ -1,76 +1,112 @@
 import sys
 import bisect
-from itertools import combinations_with_replacement, combinations, product
+from itertools import combinations_with_replacement, product
 
 def generate_non_decreasing_sequences(length, max_digit):
-    """Generates all non-decreasing sequences of a given length with digits <= max_digit."""
-    # Using combinations_with_replacement since digits can repeat and order is non-decreasing
-    return list(combinations_with_replacement(range(1, max_digit), length))
+    if length == 0:
+        return [()]
+    return list(combinations_with_replacement(range(1, max_digit + 1), length))
 
 def generate_non_increasing_sequences(length, max_digit):
-    """Generates all non-increasing sequences of a given length with digits <= max_digit."""
-    # Using combinations_with_replacement and reversing for non-increasing
-    return [tuple(reversed(seq)) for seq in combinations_with_replacement(range(1, max_digit), length)]
+    if length == 0:
+        return [()]
+    return list(combinations_with_replacement(range(1, max_digit + 1), length))[::-1]
 
-def generate_mountain_numbers():
-    mountain_numbers = set()
+def generate_non_increasing_sequences_recursive(length, max_digit):
+    if length == 0:
+        return [()]
+    sequences = []
+    def backtrack(seq, last):
+        if len(seq) == length:
+            sequences.append(tuple(seq))
+            return
+        for digit in range(last, 0, -1):
+            backtrack(seq + [digit], digit)
+    backtrack([], max_digit)
+    return sequences
 
-    # k from 0 to 9 (since 2*9+1=19 digits)
-    for k in range(0, 10):
-        num_digits = 2 * k + 1
-        if k == 0:
-            # Single-digit numbers
-            for d in range(1, 10):
-                mountain_numbers.add(d)
-            continue
-        # For k >=1
-        # Choose peak digit from 2 to 9
-        for peak in range(2, 10):
-            # Generate all possible left sequences (non-decreasing, digits < peak)
-            left_sequences = generate_non_decreasing_sequences(k, peak)
-            # Generate all possible right sequences (non-increasing, digits < peak)
-            right_sequences = generate_non_increasing_sequences(k, peak)
-            # Combine left, peak, and right
-            for left in left_sequences:
-                for right in right_sequences:
-                    # Convert to integer
-                    number = 0
-                    for d in left:
-                        number = number * 10 + d
-                    number = number * 10 + peak
-                    for d in right:
-                        number = number * 10 + d
-                    mountain_numbers.add(number)
-    # Convert to sorted list
-    mountain_numbers = sorted(mountain_numbers)
-    return mountain_numbers
+def generate_non_decreasing_sequences_recursive(length, max_digit):
+    if length == 0:
+        return [()]
+    sequences = []
+    def backtrack(seq, last):
+        if len(seq) == length:
+            sequences.append(tuple(seq))
+            return
+        for digit in range(last, max_digit +1):
+            backtrack(seq + [digit], digit)
+    backtrack([], 1)
+    return sequences
 
 def main():
     import sys
     import threading
     def run():
-        mountain_numbers = generate_mountain_numbers()
         T = int(sys.stdin.readline())
-        for test_case in range(1, T + 1):
-            A_str, B_str, M_str = sys.stdin.readline().strip().split()
-            A = int(A_str)
-            B = int(B_str)
-            M = int(M_str)
-            # Find the lower and upper indices using bisect
-            left_idx = bisect.bisect_left(mountain_numbers, A)
-            right_idx = bisect.bisect_right(mountain_numbers, B)
-            # Slice the relevant mountain numbers
-            relevant = mountain_numbers[left_idx:right_idx]
-            # Count how many are divisible by M
+        test_cases = []
+        max_length = 1
+        for _ in range(T):
+            A, B, M = map(int, sys.stdin.readline().split())
+            test_cases.append((A, B, M))
+            max_length = max(max_length, len(str(B)))
+        mountain_numbers = []
+        # Precompute all mountain numbers
+        for k in range(0, 10):
+            l = 2 * k +1
+            if l > 19:
+                continue
+            for mid in range(1,10):
+                if k >0 and mid <=1:
+                    continue
+                if k ==0:
+                    # Single digit numbers
+                    mountain_numbers.append(mid)
+                    continue
+                max_digit_prefix = mid -1
+                if max_digit_prefix <1:
+                    continue
+                # Generate all non-decreasing prefixes of length k with digits from 1 to mid-1
+                prefixes = generate_non_decreasing_sequences_recursive(k, max_digit_prefix)
+                # Generate all non-increasing suffixes of length k with digits from 1 to mid-1
+                suffixes = generate_non_increasing_sequences_recursive(k, max_digit_prefix)
+                for prefix in prefixes:
+                    for suffix in suffixes:
+                        # Assemble the number
+                        num_digits = list(prefix) + [mid] + list(suffix)
+                        num = 0
+                        for d in num_digits:
+                            num = num *10 + d
+                        mountain_numbers.append(num)
+        mountain_numbers = sorted(mountain_numbers)
+        # Now process each test case
+        for idx, (A, B, M) in enumerate(test_cases,1):
+            # Find the range in mountain_numbers
+            left = bisect.bisect_left(mountain_numbers, A)
+            right = bisect.bisect_right(mountain_numbers, B)
             count = 0
-            if M == 1:
-                count = len(relevant)
-            else:
-                for num in relevant:
-                    if num % M == 0:
-                        count +=1
-            print(f"Case #{test_case}: {count}")
-    threading.Thread(target=run,).start()
+            for num in mountain_numbers[left:right]:
+                if num % M ==0:
+                    count +=1
+            print(f"Case #{idx}: {count}")
+    threading.Thread(target=run).start()
 
-if __name__ == "__main__":
-    main()
+# Example usage:
+# To run this code, input should be provided via standard input.
+# For example, you can test it with the sample input provided in the problem statement.
+
+# Sample Input:
+# 6
+# 121 121 11
+# 0 100 2
+# 0 132 1
+# 121 132 1
+# 121 131 1
+# 22322 22322 1
+
+# Expected Output:
+# Case #1: 1
+# Case #2: 4
+# Case #3: 12
+# Case #4: 3
+# Case #5: 2
+# Case #6: 1

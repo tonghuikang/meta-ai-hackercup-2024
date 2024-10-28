@@ -129,6 +129,16 @@ def get_current_status(contest_folder, evaluation=False):
         ]
     )
 
+    def extract_max_case_string_from_input(input_text):
+        # assume the first line is input
+        try:
+            num_cases = int(input_text.split("\n")[0])
+            return f"Case #{num_cases}"
+        except:
+            return ""
+
+    df_grouped['case_string'] = df_grouped['full_in'].apply(extract_max_case_string_from_input)
+
     # Subset to aggregate grouping by
     df_subset_to_aggregate = df_grouped[
         (~(df_grouped["execution_sample_out"] == ""))
@@ -139,6 +149,7 @@ def get_current_status(contest_folder, evaluation=False):
     df_subset_to_aggregate = df_subset_to_aggregate[
         (~(df_subset_to_aggregate["execution_sample_out"].str.contains("An error happened during execution:")))
         & (~(df_subset_to_aggregate["execution_full_out"].str.contains("An error happened during execution:")))
+        & (df_subset_to_aggregate.apply(lambda row: row["case_string"] in row["execution_full_out"], axis=1))
     ]
 
     if len(df_subset_to_aggregate) == 0:
@@ -147,7 +158,12 @@ def get_current_status(contest_folder, evaluation=False):
     # Aggregate to problem
     aggregated_df = df_subset_to_aggregate.groupby(
         [
-            'problem_code', 'problem_name', 'statement', 'sample_in', 'sample_out', 'full_in'
+            'problem_code',
+            'problem_name',
+            'statement',
+            'sample_in',
+            'sample_out',
+            'full_in',
         ]
     ).agg(list).reset_index()
 

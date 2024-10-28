@@ -1,9 +1,0 @@
-An error happened during execution:
-Traceback (most recent call last):
-  File "/tmp/tmpemqpbu9o.py", line 45, in <module>
-    main()
-  File "/tmp/tmpemqpbu9o.py", line 32, in main
-    peaks = generate_peaks()
-  File "/tmp/tmpemqpbu9o.py", line 19, in generate_peaks
-    digit = digits[-1] -1
-TypeError: unsupported operand type(s) for -: 'str' and 'int'

@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 import re
 import os
 import shutil
@@ -108,13 +109,18 @@ def solve(contest_folder, password, problem_name, solution_id):
 
     execute_code = modal.Function.lookup("hackercup3", "execute_code")
 
-    sample_executed_output, sample_executed_error = execute_code.remote(python_code, sample_in)
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        sample_future = executor.submit(lambda: execute_code.remote(python_code, sample_in))
+        full_future = executor.submit(lambda: execute_code.remote(python_code, full_in))
+        
+        sample_executed_output, sample_executed_error = sample_future.result()
+        full_executed_output, full_executed_error = full_future.result()
+
     if sample_executed_error:
         sample_executed_output += "An error happened during execution:\n" + sample_executed_error
     with open(f"execution_sample_out/{problem_code}/{solution_id}.txt", "w") as f:
         f.write(sample_executed_output)
 
-    full_executed_output, full_executed_error = execute_code.remote(python_code, full_in)
     if sample_executed_error:
         full_executed_output += "An error happened during execution:\n" + full_executed_error
     with open(f"execution_full_out/{problem_code}/{solution_id}.txt", "w") as f:

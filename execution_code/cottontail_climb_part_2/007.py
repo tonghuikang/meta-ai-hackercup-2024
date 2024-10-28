@@ -1,141 +1,85 @@
 import sys
-import itertools
-from bisect import bisect_left, bisect_right
+import bisect
+from itertools import combinations_with_replacement, product
 
-def readints():
-    return list(map(int, sys.stdin.read().split()))
+def generate_non_decreasing_sequences(length, max_digit):
+    """Generate all non-decreasing sequences of given length with digits <= max_digit."""
+    if length == 0:
+        return [[]]
+    sequences = []
+    def backtrack(start, seq):
+        if len(seq) == length:
+            sequences.append(seq.copy())
+            return
+        for digit in range(start, max_digit+1):
+            seq.append(digit)
+            backtrack(digit, seq)
+            seq.pop()
+    backtrack(1, [])
+    return sequences
 
-def generate_non_decreasing(k, max_digit):
-    # Generate all non-decreasing sequences of length k with digits from 1 to max_digit
-    return itertools.combinations_with_replacement(range(1, max_digit), k)
+def generate_non_increasing_sequences(length, max_digit):
+    """Generate all non-increasing sequences of given length with digits <= max_digit."""
+    if length == 0:
+        return [[]]
+    sequences = []
+    def backtrack(start, seq):
+        if len(seq) == length:
+            sequences.append(seq.copy())
+            return
+        for digit in range(start, 0, -1):
+            if digit <= max_digit:
+                seq.append(digit)
+                backtrack(digit, seq)
+                seq.pop()
+    backtrack(max_digit, [])
+    return sequences
 
-def generate_non_increasing(k, max_digit):
-    # Generate all non-increasing sequences of length k with digits from 1 to max_digit
-    return itertools.combinations_with_replacement(range(1, max_digit), k)
-
-def main():
-    import sys
-    import threading
-    def run():
-        import sys
-        T,*rest = map(int, sys.stdin.read().split())
-        test_cases = []
-        for i in range(T):
-            A, B, M = rest[3*i:3*(i+1)]
-            test_cases.append((A, B, M))
-        
-        # Precompute all mountain numbers
-        mountains = []
-        for k in range(0, 10):
-            for D in range(k+1, 10):
-                if k == 0:
-                    num = D
-                    mountains.append(num)
-                else:
-                    # Generate all non-decreasing first k digits from 1 to D-1
-                    first_seqs = itertools.combinations_with_replacement(range(1, D), k)
-                    # Generate all non-increasing last k digits from 1 to D-1
-                    last_seqs = itertools.combinations_with_replacement(range(1, D), k)
-                    first_seqs = list(first_seqs)
-                    last_seqs = list(last_seqs)
-                    for first in first_seqs:
-                        # Convert first sequence to number
-                        first_num = 0
-                        for digit in first:
-                            first_num = first_num *10 + digit
-                        for last in last_seqs:
-                            # Convert last sequence to number (non-increasing)
-                            last_num = 0
-                            for digit in reversed(last):
-                                last_num = last_num *10 + digit
-                            # Combine to form the full number
-                            num = first_num * (10**(k+1)) + D * (10**k) + last_num
-                            mountains.append(num)
-        
-        mountains = sorted(mountains)
-        
-        # To handle large lists, convert to list once
-        mountains = sorted(mountains)
-        
-        for idx, (A, B, M) in enumerate(test_cases):
-            # Find left and right indices
-            left = bisect_left(mountains, A)
-            right = bisect_right(mountains, B)
-            count = 0
-            for num in mountains[left:right]:
-                if num % M ==0:
-                    count +=1
-            print(f"Case #{idx+1}: {count}")
-    
-    threading.Thread(target=run,).start()
-
-import sys
-import itertools
-from bisect import bisect_left, bisect_right
-
-def readints():
-    return list(map(int, sys.stdin.read().split()))
-
-def generate_non_decreasing(k, max_digit):
-    # Generate all non-decreasing sequences of length k with digits from 1 to max_digit
-    return itertools.combinations_with_replacement(range(1, max_digit), k)
-
-def generate_non_increasing(k, max_digit):
-    # Generate all non-increasing sequences of length k with digits from 1 to max_digit
-    return itertools.combinations_with_replacement(range(1, max_digit), k)
+def precompute_mountains():
+    mountains = []
+    # For k from 0 to 9 (1 to 19 digits)
+    for k in range(0, 10):
+        num_digits = 2 * k +1
+        if num_digits == 1:
+            # Single-digit mountains
+            for d in range(1,10):
+                mountains.append(d)
+            continue
+        # For k >=1
+        # Middle digit from 2 to 9
+        for peak in range(2,10):
+            # Generate all non-decreasing left sequences of length k with digits <= peak -1
+            left_seqs = generate_non_decreasing_sequences(k, peak -1)
+            # Generate all non-increasing right sequences of length k with digits <= peak -1
+            right_seqs = generate_non_increasing_sequences(k, peak -1)
+            for left in left_seqs:
+                for right in right_seqs:
+                    number_digits = left + [peak] + right
+                    # Convert to integer
+                    number = 0
+                    for d in number_digits:
+                        number = number *10 + d
+                    mountains.append(number)
+    mountains = sorted(mountains)
+    return mountains
 
 def main():
     import sys
-    import threading
-    def run():
-        import sys
-        T,*rest = map(int, sys.stdin.read().split())
-        test_cases = []
-        for i in range(T):
-            A, B, M = rest[3*i:3*(i+1)]
-            test_cases.append((A, B, M))
-        
-        # Precompute all mountain numbers
-        mountains = []
-        for k in range(0, 10):
-            for D in range(k+1, 10):
-                if k == 0:
-                    num = D
-                    mountains.append(num)
-                else:
-                    # Generate all non-decreasing first k digits from 1 to D-1
-                    first_seqs = itertools.combinations_with_replacement(range(1, D), k)
-                    # Generate all non-increasing last k digits from 1 to D-1
-                    last_seqs = itertools.combinations_with_replacement(range(1, D), k)
-                    first_seqs = list(first_seqs)
-                    last_seqs = list(last_seqs)
-                    for first in first_seqs:
-                        # Convert first sequence to number
-                        first_num = 0
-                        for digit in first:
-                            first_num = first_num *10 + digit
-                        for last in last_seqs:
-                            # Convert last sequence to number (non-increasing)
-                            last_num = 0
-                            for digit in reversed(last):
-                                last_num = last_num *10 + digit
-                            # Combine to form the full number
-                            num = first_num * (10**(k+1)) + D * (10**k) + last_num
-                            mountains.append(num)
-        
-        mountains = sorted(mountains)
-        
-        # To handle large lists, convert to list once
-        mountains = sorted(mountains)
-        
-        for idx, (A, B, M) in enumerate(test_cases):
-            # Find left and right indices
-            left = bisect_left(mountains, A)
-            right = bisect_right(mountains, B)
-            count = 0
-            for num in mountains[left:right]:
-                if num % M ==0:
-                    count +=1
-            print(f"Case #{idx+1}: {count}")
-    
-    threading.Thread(target=run,).start()
+    import math
+    from sys import stdin
+    mountains = precompute_mountains()
+    T = int(sys.stdin.readline())
+    for test_case in range(1, T+1):
+        A,B,M = map(int, sys.stdin.readline().split())
+        # Find the indices using bisect
+        left_idx = bisect.bisect_left(mountains, A)
+        right_idx = bisect.bisect_right(mountains, B)
+        count = 0
+        # Iterate through the relevant mountain numbers and count divisible by M
+        for num in mountains[left_idx:right_idx]:
+            if num % M ==0:
+                count +=1
+        print(f"Case #{test_case}: {count}")
+
+if __name__ == "__main__":
+    main()

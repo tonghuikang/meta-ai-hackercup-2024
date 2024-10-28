@@ -2,56 +2,64 @@ import sys
 import itertools
 import bisect
 
-def generate_mountains():
+def generate_non_decreasing_sequences(k, max_digit):
+    if k == 0:
+        return [()]
+    return list(itertools.combinations_with_replacement(range(1, max_digit +1), k))
+
+def generate_non_increasing_sequences(k, max_digit):
+    if k == 0:
+        return [()]
+    sequences = generate_non_decreasing_sequences(k, max_digit)
+    return [tuple(reversed(seq)) for seq in sequences]
+
+def generate_all_mountain_numbers():
     mountains = []
-
-    # Single-digit mountains (k=0)
-    for m in range(1, 10):
-        mountains.append(m)
-
-    # For lengths >=3 (k=1 to9)
-    for k in range(1, 10):
-        for m in range(2, 10):
-            max_digit = m - 1
-            if max_digit < 1:
-                continue  # No valid first or last digits
-            # Generate first k digits: non-decreasing, digits 1 to m-1
-            first_seqs = list(itertools.combinations_with_replacement(range(1, max_digit + 1), k))
-            # Generate last k digits: non-increasing, digits 1 to m-1
-            non_decreasing_seqs = list(itertools.combinations_with_replacement(range(1, max_digit + 1), k))
-            last_seqs = [tuple(reversed(seq)) for seq in non_decreasing_seqs]
-            # Combine first and last sequences with middle digit m
-            for first in first_seqs:
-                for last in last_seqs:
-                    digits = list(first) + [m] + list(last)
-                    num = 0
-                    for d in digits:
-                        num = num * 10 + d
-                    mountains.append(num)
-
-    mountains.sort()
+    for k in range(0, 10):
+        l = 2 * k +1
+        for m in range(1, 10):
+            if k ==0:
+                mountains.append(m)
+                continue
+            max_digit = m -1
+            if max_digit <1:
+                continue
+            first_sequences = generate_non_decreasing_sequences(k, max_digit)
+            last_sequences = generate_non_increasing_sequences(k, max_digit)
+            for first_k in first_sequences:
+                for last_k in last_sequences:
+                    # Combine to form the number
+                    num_digits = first_k + (m,) + last_k
+                    number = 0
+                    for d in num_digits:
+                        number = number *10 + d
+                    mountains.append(number)
+    mountains = sorted(mountains)
     return mountains
 
 def main():
-    mountains = generate_mountains()
-    input = sys.stdin.read().split()
-    T = int(input[0])
-    idx = 1
-    for tc in range(1, T + 1):
-        A = int(input[idx])
-        B = int(input[idx + 1])
-        M = int(input[idx + 2])
-        idx += 3
-        # Find left and right indices
-        left = bisect.bisect_left(mountains, A)
-        right = bisect.bisect_right(mountains, B)
-        count = 0
-        if M == 1:
-            count = right - left
-        else:
-            subset = mountains[left:right]
-            count = sum(1 for num in subset if num % M == 0)
-        print(f"Case #{tc}: {count}")
+    import sys
+    import threading
+    def run():
+        mountains = generate_all_mountain_numbers()
+        T = int(sys.stdin.readline())
+        for case in range(1, T+1):
+            line = ''
+            while line.strip() == '':
+                line = sys.stdin.readline()
+            A_str, B_str, M_str = line.strip().split()
+            A = int(A_str)
+            B = int(B_str)
+            M = int(M_str)
+            # Find the indices
+            left = bisect.bisect_left(mountains, A)
+            right = bisect.bisect_right(mountains, B)
+            count = 0
+            for num in mountains[left:right]:
+                if num % M ==0:
+                    count +=1
+            print(f"Case #{case}: {count}")
+    threading.Thread(target=run,).start()
 
 if __name__ == "__main__":
     main()

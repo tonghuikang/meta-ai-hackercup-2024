@@ -1,4 +1,0 @@
-Case #1: F
-Case #2: F
-Case #3: F
-Case #4: 0

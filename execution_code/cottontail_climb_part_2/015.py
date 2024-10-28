@@ -1,73 +1,58 @@
 import sys
 import bisect
-from itertools import combinations_with_replacement, product
+from itertools import combinations_with_repetition
 
-def generate_mountain_numbers():
-    mountain_numbers = set()
-    for length in range(1, 20, 2):  # odd lengths from 1 to 19
-        k = (length - 1) // 2
-        for m in range(1, 10):  # middle digit
-            # Generate left sequences: length k, non-decreasing, digits 1-9, <=m, not containing m
-            left_sequences = []
+def generate_non_decreasing_sequences(length, exclude_digit):
+    if length == 0:
+        return [()]
+    digits = [d for d in range(1, 10) if d != exclude_digit]
+    # Use combinations_with_repetition to generate non-decreasing sequences
+    return list(combinations_with_repetition(digits, length))
 
-            def generate_left(pos, last_digit, current):
-                if pos == k:
-                    left_sequences.append(''.join(map(str, current)))
-                    return
-                for d in range(last_digit, m+1):
-                    if d == m:
-                        continue
-                    current.append(d)
-                    generate_left(pos+1, d, current)
-                    current.pop()
+def generate_non_increasing_sequences(length, exclude_digit):
+    if length == 0:
+        return [()]
+    digits = [d for d in range(1, 10) if d != exclude_digit]
+    # Generate non-increasing sequences by reversing combinations_with_repetition
+    return [tuple(sorted(seq, reverse=True)) for seq in combinations_with_repetition(digits, length)]
 
+def generate_mountains():
+    mountains = []
+    for total_length in range(1, 20, 2):  # Odd lengths from 1 to 19
+        k = (total_length - 1) // 2
+        for peak in range(1, 10):
             if k == 0:
-                left_sequences = ['']
+                mountains.append(peak)
             else:
-                generate_left(0, 1, [])
-
-            # Generate right sequences: length k, non-increasing, digits 1-9, <=m, not containing m
-            right_sequences = []
-
-            def generate_right(pos, last_digit, current):
-                if pos == k:
-                    right_sequences.append(''.join(map(str, current)))
-                    return
-                for d in range(last_digit, 0, -1):
-                    if d == m:
-                        continue
-                    current.append(d)
-                    generate_right(pos+1, d, current)
-                    current.pop()
-
-            if k == 0:
-                right_sequences = ['']
-            else:
-                generate_right(0, m, [])
-
-            # Combine left, middle, and right
-            for left in left_sequences:
-                for right in right_sequences:
-                    number_str = left + str(m) + right
-                    number = int(number_str)
-                    mountain_numbers.add(number)
-    return sorted(mountain_numbers)
+                left_sequences = generate_non_decreasing_sequences(k, peak)
+                right_sequences = generate_non_increasing_sequences(k, peak)
+                for left in left_sequences:
+                    for right in right_sequences:
+                        # Combine left, peak, and right into a single number
+                        number_digits = left + (peak,) + right
+                        # Convert tuple of digits to integer
+                        number = int(''.join(map(str, number_digits)))
+                        mountains.append(number)
+    mountains.sort()
+    return mountains
 
 def main():
-    mountain_numbers = generate_mountain_numbers()
-    T = int(sys.stdin.readline())
-    for case in range(1, T+1):
-        A_str, B_str, M_str = sys.stdin.readline().strip().split()
-        A = int(A_str)
-        B = int(B_str)
-        M = int(M_str)
-        # Find the range in mountain_numbers
-        left = bisect.bisect_left(mountain_numbers, A)
-        right = bisect.bisect_right(mountain_numbers, B)
+    mountains = generate_mountains()
+    input = sys.stdin.read().split()
+    T = int(input[0])
+    idx = 1
+    for case in range(1, T + 1):
+        A = int(input[idx])
+        B = int(input[idx + 1])
+        M = int(input[idx + 2])
+        idx += 3
+        # Find the left and right indices using bisect
+        left = bisect.bisect_left(mountains, A)
+        right = bisect.bisect_right(mountains, B)
         count = 0
-        for num in mountain_numbers[left:right]:
+        for num in mountains[left:right]:
             if num % M == 0:
-                count +=1
+                count += 1
         print(f"Case #{case}: {count}")
 
 if __name__ == "__main__":

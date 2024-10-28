@@ -1,7 +1,0 @@
-An error happened during execution:
-Traceback (most recent call last):
-  File "/tmp/tmpkm8wakxh.py", line 145, in <module>
-    main()
-  File "/tmp/tmpkm8wakxh.py", line 118, in main
-    for w in assign_below[-(needed - len(assign_above)):]:
-UnboundLocalError: local variable 'assign_below' referenced before assignment

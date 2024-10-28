@@ -1,61 +1,103 @@
 import sys
+import math
 import bisect
+from itertools import combinations_with_replacement, product
 
-def generate_mountain_numbers():
-    mountains = []
+def generate_non_decreasing_sequences(length, max_digit):
+    """
+    Generate all non-decreasing sequences of given length where each digit is <= max_digit
+    and >=1.
+    """
+    sequences = []
 
-    def backtrack(prefix, length, k, is_increasing, last_digit):
-        if len(prefix) == length:
-            if k > 0:
-                # Check the peak uniqueness
-                peak = prefix[k]
-                if prefix[k-1] < peak and prefix[k] > prefix[k+1]:
-                    number = int(''.join(map(str, prefix)))
-                    mountains.append(number)
-            else:
-                # Single digit, always a mountain
-                number = int(''.join(map(str, prefix)))
-                mountains.append(number)
+    def backtrack(seq, start, remaining):
+        if remaining == 0:
+            sequences.append(seq.copy())
             return
+        for digit in range(start, max_digit + 1):
+            seq.append(digit)
+            backtrack(seq, digit, remaining -1)
+            seq.pop()
+    
+    backtrack([], 1, length)
+    return sequences
 
-        if len(prefix) < k +1:
-            # Build the increasing part
-            for d in range(last_digit, 10):
-                if d == 0:
-                    continue
-                prefix.append(d)
-                backtrack(prefix, length, k, True, d)
-                prefix.pop()
-        else:
-            # Build the decreasing part
-            for d in range(1, prefix[k] +1):
-                prefix.append(d)
-                backtrack(prefix, length, k, False, d)
-                prefix.pop()
+def generate_non_increasing_sequences(length, max_digit):
+    """
+    Generate all non-increasing sequences of given length where each digit is <= max_digit
+    and >=1.
+    """
+    sequences = []
 
-    # Generate for different k
-    for k in range(0, 9):
-        length = 2 * k +1
-        if length ==1:
-            for d in range(1,10):
-                mountains.append(d)
-            continue
-        backtrack([], length, k, True, 1)
-    mountains = sorted(set(mountains))
-    return mountains
+    def backtrack(seq, start, remaining):
+        if remaining == 0:
+            sequences.append(seq.copy())
+            return
+        for digit in range(start, 0, -1):
+            if digit > max_digit:
+                continue
+            seq.append(digit)
+            backtrack(seq, digit, remaining -1)
+            seq.pop()
+    
+    backtrack([], max_digit, length)
+    return sequences
+
+def precompute_mountain_numbers():
+    mountain_numbers = set()
+
+    # Iterate over possible odd digit lengths
+    for total_digits in range(1, 19, 2):
+        k = (total_digits -1)//2
+        # For each possible middle digit
+        for middle_digit in range(1,10):
+            # Generate first k digits: non-decreasing, all < middle_digit
+            if k ==0:
+                first_parts = [[]]
+            else:
+                first_parts = generate_non_decreasing_sequences(k, middle_digit -1)
+            # Generate last k digits: non-increasing, all < middle_digit
+            if k ==0:
+                last_parts = [[]]
+            else:
+                last_parts = generate_non_increasing_sequences(k, middle_digit -1)
+            # Combine all possible combinations
+            for fp in first_parts:
+                for lp in last_parts:
+                    number_digits = fp + [middle_digit] + lp
+                    number = int(''.join(map(str, number_digits)))
+                    mountain_numbers.add(number)
+    # Remove numbers with leading zeros if any (though our generation shouldn't have)
+    mountain_numbers = [num for num in mountain_numbers if len(str(num)) == len(str(num))]
+    mountain_numbers.sort()
+    return mountain_numbers
 
 def main():
-    mountains = generate_mountain_numbers()
-    T = int(sys.stdin.readline())
-    for case in range(1, T+1):
-        A, B, M = map(int, sys.stdin.readline().split())
-        left = bisect.bisect_left(mountains, A)
-        right = bisect.bisect_right(mountains, B)
-        count = 0
-        for num in mountains[left:right]:
-            if num % M ==0:
-                count +=1
-        print(f"Case #{case}: {count}")
+    import sys
+    import threading
+
+    def run():
+        mountains = precompute_mountain_numbers()
+        T = int(sys.stdin.readline())
+        for case in range(1, T+1):
+            line = ''
+            while line.strip() == '':
+                line = sys.stdin.readline()
+            A_str, B_str, M_str = line.strip().split()
+            A = int(A_str)
+            B = int(B_str)
+            M = int(M_str)
+            # Find the index of first mountain >= A
+            left = bisect.bisect_left(mountains, A)
+            # Find the index of first mountain > B
+            right = bisect.bisect_right(mountains, B)
+            count = 0
+            for num in mountains[left:right]:
+                if num % M ==0:
+                    count +=1
+            print(f"Case #{case}: {count}")
+
+    threading.Thread(target=run).start()
 
 if __name__ == "__main__":
     main()

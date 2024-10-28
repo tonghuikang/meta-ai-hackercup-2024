@@ -1,77 +1,77 @@
 import sys
-import bisect
+import math
+from bisect import bisect_left, bisect_right
 
 def generate_mountain_numbers():
-    mountains = []
+    from itertools import combinations_with_replacement, product
+    mountain_numbers = []
 
-    # Maximum number of digits is 19 (since B <= 10^18)
-    for k in range(0, 10):  # since 2k+1 <=19 when k<=9
+    # For lengths 1,3,5,...,19
+    for k in range(0, 10):  # k from 0 to 9, length=2k+1 up to 19
         length = 2 * k + 1
-        if length > 19:
+        if k == 0:
+            # Single-digit mountain numbers: 1 to 9
+            for d in range(1, 10):
+                mountain_numbers.append(d)
             continue
-
-        # Generate all possible non-decreasing sequences for the first k+1 digits
-        def backtrack_first(pos, current, last_digit):
-            if pos == k +1:
-                # Now generate the last k+1 digits, which should be non-increasing and starts with current[-1]
-                middle_digit = current[-1]
-                backtrack_last(0, current, [middle_digit], middle_digit)
-                return
-            for d in range(last_digit, 10):
-                if d ==0:
-                    continue
-                current.append(d)
-                backtrack_first(pos +1, current, d)
-                current.pop()
-
-        # Generate all possible non-increasing sequences for the last k+1 digits
-        def backtrack_last(pos, first_part, current_last, last_digit):
-            if pos == k +1:
-                # Combine first_part and current_last, ensuring uniqueness of middle digit
-                # First part has k+1 digits, current_last has k+1 digits with first being the middle digit
-                full_digits = first_part + current_last[1:]
-                # Check uniqueness of middle digit
-                # Ensure that the middle digit is unique, meaning it's greater than its neighbors
-                # However, according to the problem, "the middle digit is unique" likely means it's distinct.
-                # So we ensure that the middle digit is greater than the digits before and after
-                mid = k
-                if full_digits[mid] > full_digits[mid -1] and full_digits[mid] > full_digits[mid +1]:
-                    # Convert to number
-                    number = 0
-                    for d in full_digits:
-                        number = number *10 + d
-                    mountains.append(number)
-                return
-            for d in range(1, last_digit+1):
-                current_last.append(d)
-                backtrack_last(pos +1, first_part, current_last, d)
-                current_last.pop()
-
-        backtrack_first(0, [], 1)
-
-    mountains = sorted(set(mountains))
-    return mountains
+        # For k >=1, generate mountain numbers
+        for middle in range(1, 10):
+            # Digits to the left: k digits, non-decreasing, digits from 1 to middle-1
+            if middle ==1:
+                continue  # No digits less than 1
+            max_digit = middle -1
+            # Generate all non-decreasing sequences of length k with digits from1 to max_digit
+            # Equivalent to combinations with replacement
+            # The number of such sequences is C(max_digit +k -1, k)
+            # Since generating all is time-consuming, use recursion
+            def generate_prefix(current, last, remaining):
+                if remaining ==0:
+                    prefixes.append(current)
+                    return
+                for d in range(last, max_digit+1):
+                    generate_prefix(current *10 +d, d, remaining -1)
+            prefixes = []
+            generate_prefix(0,1, k)
+            # Similarly, generate all non-increasing sequences of length k with digits from1 to max_digit
+            def generate_suffix(current, last, remaining):
+                if remaining ==0:
+                    suffixes.append(current)
+                    return
+                for d in range(1, last+1):
+                    generate_suffix(current *10 +d, d, remaining -1)
+            suffixes = []
+            generate_suffix(0, max_digit, k)
+            # Combine prefixes and suffixes with the middle digit
+            for p in prefixes:
+                for s in suffixes:
+                    number = p * (10**(k +1)) + middle * (10**k) + s
+                    mountain_numbers.append(number)
+    mountain_numbers.sort()
+    return mountain_numbers
 
 def main():
     import sys
     import threading
 
     def run():
-        mountains = generate_mountain_numbers()
         T = int(sys.stdin.readline())
-        for case in range(1, T+1):
-            A_str, B_str, M_str = sys.stdin.readline().strip().split()
-            A = int(A_str)
-            B = int(B_str)
-            M = int(M_str)
-            # Find the indices of mountains >=A and <=B
-            left = bisect.bisect_left(mountains, A)
-            right = bisect.bisect_right(mountains, B)
-            count = 0
-            for num in mountains[left:right]:
+        test_cases = []
+        for _ in range(T):
+            A, B, M = map(int, sys.stdin.readline().split())
+            test_cases.append( (A, B, M) )
+        # Generate all mountain numbers
+        mountain_numbers = generate_mountain_numbers()
+        # Sort mountain numbers
+        mountain_numbers.sort()
+        # For each test case, count numbers in [A,B] divisible by M
+        for idx, (A, B, M) in enumerate(test_cases, 1):
+            left = bisect_left(mountain_numbers, A)
+            right = bisect_right(mountain_numbers, B)
+            count =0
+            for num in mountain_numbers[left:right]:
                 if num % M ==0:
                     count +=1
-            print(f"Case #{case}: {count}")
+            print(f"Case #{idx}: {count}")
 
     threading.Thread(target=run).start()
 

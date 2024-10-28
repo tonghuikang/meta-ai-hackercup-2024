@@ -1,63 +1,68 @@
 import sys
+import itertools
 import bisect
-from functools import lru_cache
-
-@lru_cache(maxsize=None)
-def generate_non_decreasing(k, max_digit, min_digit=1):
-    if k == 0:
-        return [tuple()]
-    sequences = []
-    for digit in range(min_digit, max_digit + 1):
-        for seq in generate_non_decreasing(k - 1, max_digit, digit):
-            sequences.append((digit,) + seq)
-    return sequences
-
-@lru_cache(maxsize=None)
-def generate_non_increasing(k, max_digit, min_digit=1):
-    if k == 0:
-        return [tuple()]
-    sequences = []
-    for digit in range(min_digit, max_digit + 1):
-        for seq in generate_non_increasing(k - 1, digit, min_digit):
-            sequences.append((digit,) + seq)
-    return sequences
 
 def generate_mountain_numbers():
     mountains = []
-    for L in range(1, 20, 2):
-        k = (L - 1) // 2
-        if L == 1:
-            mountains.extend(range(1, 10))
-            continue
-        for D in range(2, 10):
-            if D - 1 < 1:
-                continue
-            D_left_sequences = generate_non_decreasing(k, D - 1, 1)
-            D_right_sequences = generate_non_increasing(k, D - 1, 1)
-            for D_left in D_left_sequences:
-                for D_right in D_right_sequences:
-                    num_str = ''.join(map(str, D_left)) + str(D) + ''.join(map(str, D_right))
-                    num = int(num_str)
-                    mountains.append(num)
-    mountains.sort()
+    for k in range(0, 10):
+        l = 2 * k + 1
+        if k == 0:
+            # Single-digit mountain numbers
+            for D in range(1, 10):
+                mountains.append(D)
+        else:
+            # For each possible middle digit D
+            for D in range(1, 10):
+                # Generate all non-decreasing prefixes of length k with digits < D
+                # Using combinations with replacement from 1 to D-1
+                if D == 1:
+                    # If D is 1, all prefix digits must be <1, which is invalid
+                    continue
+                # Generate non-decreasing sequences of length k from 1 to D-1
+                for prefix in itertools.combinations_with_replacement(range(1, D), k):
+                    prefix = list(prefix)
+                    # Append the middle digit D
+                    full_prefix = prefix + [D]
+                    # Now generate non-increasing suffix of length k with digits <= D-1
+                    # This is equivalent to non-decreasing sequences from 1 to D-1, reversed
+                    suffix_sequences = itertools.combinations_with_replacement(range(1, D), k)
+                    for suffix in suffix_sequences:
+                        suffix = list(suffix)
+                        # To make it non-increasing, reverse the non-decreasing sequence
+                        suffix = suffix[::-1]
+                        # Combine prefix and suffix
+                        number_digits = full_prefix + suffix
+                        # Convert digits to integer
+                        number = 0
+                        for digit in number_digits:
+                            number = number * 10 + digit
+                        mountains.append(number)
+    mountains = sorted(mountains)
     return mountains
 
 def main():
     mountains = generate_mountain_numbers()
-    input = sys.stdin.read().splitlines()
-    T = int(input[0])
-    test_cases = [tuple(map(int, line.strip().split())) for line in input[1:T+1]]
-    for idx, (A, B, M) in enumerate(test_cases, 1):
+    T = int(sys.stdin.readline())
+    for case in range(1, T + 1):
+        line = ''
+        while line.strip() == '':
+            line = sys.stdin.readline()
+            if not line:
+                break
+        if not line:
+            break
+        A_str, B_str, M_str = line.strip().split()
+        A = int(A_str)
+        B = int(B_str)
+        M = int(M_str)
+        # Find left and right indices using bisect
         left = bisect.bisect_left(mountains, A)
         right = bisect.bisect_right(mountains, B)
         count = 0
-        # To speed up, use list slicing and list comprehension
-        subset = mountains[left:right]
-        if M == 1:
-            count = len(subset)
-        else:
-            count = sum(1 for num in subset if num % M == 0)
-        print(f"Case #{idx}: {count}")
+        for num in mountains[left:right]:
+            if num % M == 0:
+                count +=1
+        print(f"Case #{case}: {count}")
 
 if __name__ == "__main__":
     main()

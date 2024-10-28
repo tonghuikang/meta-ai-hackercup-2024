@@ -1,5 +1,0 @@
-An error happened during execution:
-  File "/tmp/tmpi_e_falf.py", line 50
-    total_pairs = N * (2*S := 2*max(R,C)+1)**2  # placeholder
-                       ^
-SyntaxError: cannot use assignment expressions with operator

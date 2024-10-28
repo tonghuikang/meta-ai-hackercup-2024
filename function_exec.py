@@ -13,47 +13,7 @@ import os
 from modal import App, Image
 
 image = Image.debian_slim().pip_install(
-    "fastapi-poe==0.0.23",
-    "huggingface-hub==0.16.4",
-    "ipython",
     "scipy",
-    "matplotlib",
-    "scikit-learn",
-    "pandas==1.3.2",
-    "ortools",
-    "torch",
-    "torchvision",
-    "tensorflow",
-    "spacy",
-    "transformers",
-    "opencv-python-headless",
-    "nltk",
-    "openai",
-    "requests",
-    "beautifulsoup4",
-    "newspaper3k",
-    "feedparser",
-    "sympy",
-    "tensorflow",
-    "cartopy",
-    "wordcloud",
-    "gensim",
-    "keras",
-    "librosa",
-    "XlsxWriter",
-    "docx2txt",
-    "markdownify",
-    "pdfminer.six",
-    "Pillow",
-    "opencv-python",
-    "sortedcontainers",
-    "intervaltree",
-    "geopandas",
-    "basemap",
-    "tiktoken",
-    "basemap-data-hires",
-    "yfinance",
-    "dill",
 ).copy_local_file("practice.zip")
 # TODO also upload encrypted content materials
 
@@ -61,7 +21,7 @@ image = Image.debian_slim().pip_install(
 app = App("hackercup3")
 
 
-@app.function(image=image, timeout=90, container_idle_timeout=1200)
+@app.function(image=image, timeout=500, container_idle_timeout=1200)
 def execute_code(code_str, input_str) -> tuple[str, str]:
     with tempfile.NamedTemporaryFile('w+', suffix='.py', delete=False) as tmp_file:
         tmp_file.write(code_str)
@@ -73,7 +33,7 @@ def execute_code(code_str, input_str) -> tuple[str, str]:
             input=input_str,
             text=True,
             capture_output=True,
-            timeout=60  # Set a timeout to prevent infinite execution
+            timeout=450  # Set a timeout to prevent infinite execution
         )
         if result.stderr:
             return result.stdout, result.stderr

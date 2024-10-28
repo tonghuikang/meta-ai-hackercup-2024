@@ -1,6 +1,0 @@
-The best solution among the presented options is **solution id 012**. This solution correctly assigns weights to the rabbits in the sample test cases, adhering to all problem constraints and minimizing the sum of \( F(c) \) across all color groups.
-
-**Best Solution:**
-```plaintext
-The best solution is <index>012</index>.
-```

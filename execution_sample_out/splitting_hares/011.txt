@@ -1,7 +1,0 @@
-An error happened during execution:
-Traceback (most recent call last):
-  File "/tmp/tmp3e2giyb5.py", line 159, in <module>
-    main()
-  File "/tmp/tmp3e2giyb5.py", line 91, in main
-    assignment[i] = assign_vals[assign_idx]
-IndexError: list index out of range
