@@ -211,13 +211,13 @@ def get_current_status(contest_folder, evaluation=False):
 
 
 analysis_prompt = """
-You will choose the best solution among the presented solutions.
+You will choose the fully correct solution among the presented solutions.
 
-The best solution is a solution that
+The fully correct solution is a solution that
 - is correct on the sample input
-- has successfully executed on the full input
-- is most likely fully correct on the full input
+- is most likely fully correct on the full input, without any flaws
 
+Note that it is possible that multiple solutions could be correct.
 
 This is the problem statement.
 
@@ -273,7 +273,7 @@ client = OpenAI()
 
 def call_openai(prompt):
     completion = client.chat.completions.create(
-        model="gpt-4o-2024-08-06",
+        model="o1-mini",
         messages=[{"role": "user", "content": prompt}],
     )
     return completion.choices[0].message.content
@@ -371,14 +371,15 @@ def select_solution(solutions_dict: dict[str, Any]):
 
     openai_judgment = call_openai(judgment_instructions)
 
-    selected_hashed_id = extract_index_id(openai_judgment)
-    if selected_hashed_id is None:
-        print(f"Did not select solution for {problem_code}")
-        return openai_judgment, None
-    selected_solution_id = hashed_id_to_solution_id[selected_hashed_id]
-
     problem_code = solutions_dict["problem_code"]
     timestring = solutions_dict["timestring"]
+
+    selected_hashed_id = extract_index_id(openai_judgment)
+    if selected_hashed_id is None:
+        print(f"Did not select solution for {problem_code}, forcing any solution.")
+        selected_hashed_id = "000"
+        return openai_judgment, None
+    selected_solution_id = hashed_id_to_solution_id[selected_hashed_id]
 
     # Define the source file paths for the code and output
     response_src = f"execution_response/{problem_code}/{selected_solution_id}.md"
