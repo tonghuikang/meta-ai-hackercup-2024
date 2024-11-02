@@ -378,7 +378,7 @@ def select_solution(solutions_dict: dict[str, Any]):
     if selected_hashed_id is None:
         print(f"Did not select solution for {problem_code}, forcing any solution.")
         selected_hashed_id = "000"
-        return openai_judgment, None
+        # return openai_judgment, None
     selected_solution_id = hashed_id_to_solution_id[selected_hashed_id]
 
     # Define the source file paths for the code and output
