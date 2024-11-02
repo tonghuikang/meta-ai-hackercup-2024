@@ -1,107 +1,155 @@
 import sys
 import threading
-from collections import defaultdict, deque
 
 def main():
     import sys
-
+    import sys
     sys.setrecursionlimit(1 << 25)
-    T = int(sys.stdin.readline())
-    MOD = 998244353
+    from collections import defaultdict
 
+    T = int(sys.stdin.readline())
     for test_case in range(1, T + 1):
         N = int(sys.stdin.readline())
-        parents = []
+        P = [0] * (N + 1)
+        S = [''] * (N + 1)
         names = []
-        for _ in range(N):
-            parts = sys.stdin.readline().strip().split()
-            p = int(parts[0])
-            s = parts[1]
-            parents.append(p)
-            names.append(s)
-
-        # Create list of unique names sorted lex
-        unique_names = sorted(list(set(names)))
-        name_to_idx = {name: idx + 1 for idx, name in enumerate(unique_names)}
-        U = unique_names
+        for i in range(1, N +1):
+            line = sys.stdin.readline()
+            if not line:
+                line = sys.stdin.readline()
+            parts = line.strip().split()
+            P_i = int(parts[0])
+            S_i = parts[1]
+            P[i] = P_i
+            S[i] = S_i
+            names.append(S_i)
+        # Build U
+        U = sorted(list(set(names)))
+        name_to_idx = {name: idx+1 for idx, name in enumerate(U)}
         U_size = len(U)
-
         # Build tree
-        children = [[] for _ in range(N + 1)]
-        for i in range(2, N + 1):
-            p = parents[i - 1]
-            children[p].append(i)
-
-        # Precompute descendant counts
-        # For descendants, we need frequency counts in subtree
-        # Since we need least common name, which is min count, and lowest index
-        # We can do a post-order traversal and count frequencies
-
-        # Initialize D array
-        D = [0] * (N + 1)
-
-        # To store frequency for each subtree
-        def dfs_desc(u):
-            freq = defaultdict(int)
-            freq[name_to_idx[names[u - 1]]] += 1
-            for v in children[u]:
-                child_freq = dfs_desc(v)
-                for k, v_count in child_freq.items():
-                    freq[k] += v_count
-            # Find least common name
-            min_count = float('inf')
-            min_idx = 0
-            for name_idx, count in freq.items():
-                if count < min_count or (count == min_count and name_idx < min_idx):
-                    min_count = count
-                    min_idx = name_idx
-            if len(children[u]) == 0:
-                # No descendants
-                D[u] = 0
+        children = [[] for _ in range(N +1)]
+        root = -1
+        for i in range(1, N +1):
+            if P[i] == -1:
+                root = i
             else:
-                D[u] = min_idx
-            return freq
-
-        dfs_desc(1)
-
-        # For ancestors, we need to track frequencies along the path from root to current node
-        # We can do a pre-order traversal and maintain a global frequency dict
-        A = [0] * (N + 1)
-        freq = defaultdict(int)
-
-        def dfs_anc(u):
-            # Update frequency with current node
-            freq[name_to_idx[names[u - 1]]] += 1
-            # Find least common name among ancestors (excluding self)
-            if parents[u - 1] == -1:
-                A[u] = 0
+                children[P[i]].append(i)
+        # Compute A_i
+        A = [0] * (N +1)
+        # Initialize frequency array
+        freq = [0] * (U_size +2)
+        # Initialize min frequency and min U idx
+        # To track min frequency and min U idx, use a list of sets indexed by frequency
+        # Since frequencies can go up to the depth, which is <= N
+        # To save memory, use a dictionary
+        freq_to_u = defaultdict(set)
+        u_to_freq = [0] * (U_size +1)
+        min_freq = None
+        min_u_idx = None
+        # Initialize min_freq to infinity
+        min_freq = float('inf')
+        min_u_idx = 0
+        stack = [(root, False)]
+        while stack:
+            node, visited = stack.pop()
+            if visited:
+                # Post-processing: remove current node's name from frequency
+                name_idx = name_to_idx[S[node]]
+                old_freq = u_to_freq[name_idx]
+                freq_to_u[old_freq].remove(name_idx)
+                if not freq_to_u[old_freq]:
+                    del freq_to_u[old_freq]
+                    if old_freq == min_freq:
+                        if freq_to_u:
+                            min_freq = min(freq_to_u.keys())
+                            min_u_idx = min(freq_to_u[min_freq])
+                        else:
+                            min_freq = float('inf')
+                            min_u_idx = 0
+                u_to_freq[name_idx] -=1
+                if u_to_freq[name_idx] >0:
+                    freq_to_u[u_to_freq[name_idx]].add(name_idx)
+                    if u_to_freq[name_idx] < min_freq or (u_to_freq[name_idx] == min_freq and name_idx < min_u_idx):
+                        min_freq = u_to_freq[name_idx]
+                        min_u_idx = name_idx
+                stack.pop()
             else:
-                # Exclude current node's name
-                current_name_idx = name_to_idx[names[u - 1]]
-                min_count = float('inf')
-                min_idx = 0
-                for name_idx, count in freq.items():
-                    if name_idx == current_name_idx:
-                        continue
-                    if count < min_count or (count == min_count and name_idx < min_idx):
-                        min_count = count
-                        min_idx = name_idx
-                if min_count == float('inf'):
-                    A[u] = 0
+                # Pre-processing: before processing children
+                stack.append((node, True))
+                # Push children to stack
+                for child in children[node]:
+                    stack.append((child, False))
+                # Now, set A[node]
+                if node == root:
+                    A[node] = 0
                 else:
-                    A[u] = min_idx
-            for v in children[u]:
-                dfs_anc(v)
-            freq[name_to_idx[names[u - 1]]] -= 1
-
-        dfs_anc(1)
-
+                    if freq_to_u:
+                        A[node] = min_u_idx
+                    else:
+                        A[node] = 0
+                # Now, add this node's name to frequency
+                name_idx = name_to_idx[S[node]]
+                old_freq = u_to_freq[name_idx]
+                if old_freq >0:
+                    freq_to_u[old_freq].remove(name_idx)
+                    if not freq_to_u[old_freq]:
+                        del freq_to_u[old_freq]
+                        if old_freq == min_freq:
+                            if freq_to_u:
+                                min_freq = min(freq_to_u.keys())
+                                min_u_idx = min(freq_to_u[min_freq])
+                            else:
+                                min_freq = float('inf')
+                                min_u_idx = 0
+                u_to_freq[name_idx] +=1
+                new_freq = u_to_freq[name_idx]
+                freq_to_u[new_freq].add(name_idx)
+                if new_freq < min_freq or (new_freq == min_freq and name_idx < min_u_idx):
+                    min_freq = new_freq
+                    min_u_idx = name_idx
+        # Compute D_i using DSU on tree (small to large)
+        D = [0] * (N +1)
+        # To store frequency maps, use list of lists
+        # Due to high constraints, use arrays
+        # Implement iterative post-order traversal with stack
+        from collections import deque
+        D_freq = [None] * (N +1)
+        D_min_freq = [None] * (N +1)
+        D_min_u_idx = [None] * (N +1)
+        stack = [(root, False)]
+        while stack:
+            node, visited = stack.pop()
+            if visited:
+                # Process node: merge children's frequency maps
+                freq_map = {}
+                min_f = float('inf')
+                min_u = 0
+                for child in children[node]:
+                    child_freq_map = D_freq[child]
+                    for k, v in child_freq_map.items():
+                        freq_map[k] = freq_map.get(k, 0) + v
+                # Add current node's name
+                name_idx = name_to_idx[S[node]]
+                freq_map[name_idx] = freq_map.get(name_idx, 0) +1
+                # Find min frequency and min U idx
+                for k in freq_map:
+                    if freq_map[k] < min_f or (freq_map[k] == min_f and k < min_u):
+                        min_f = freq_map[k]
+                        min_u = k
+                D[node] = min_u if len(children[node]) >0 else 0
+                D_freq[node] = freq_map
+            else:
+                stack.append((node, True))
+                for child in children[node]:
+                    stack.append((child, False))
         # Compute hash
         hash_val = 0
-        for i in range(1, N + 1):
-            hash_val = (hash_val * (U_size + 1) + A[i]) % MOD
-            hash_val = (hash_val * (U_size + 1) + D[i]) % MOD
-
+        MOD = 998244353
+        base = U_size +1
+        for i in range(1, N +1):
+            hash_val = (hash_val * base + A[i]) % MOD
+            hash_val = (hash_val * base + D[i]) % MOD
         print(f"Case #{test_case}: {hash_val}")
 
 threading.Thread(target=main).start()

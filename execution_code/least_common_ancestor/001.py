@@ -1,101 +1,124 @@
 import sys
 import threading
-import sys
 def main():
     import sys
     import threading
-    import math
-    import bisect
+
     sys.setrecursionlimit(1 << 25)
+
     T = int(sys.stdin.readline())
-    for case_num in range(1, T+1):
+    for test_case in range(1, T + 1):
         N = int(sys.stdin.readline())
         P = []
         S = []
         name_set = set()
         for _ in range(N):
-            tokens = sys.stdin.readline().strip().split()
-            pi = int(tokens[0])
-            si = tokens[1]
-            P.append(pi)
-            S.append(si)
-            name_set.add(si)
-        name_list = sorted(list(name_set))
-        name_to_index = {name:i for i,name in enumerate(name_list)}
-        U_size = len(name_list)
+            parts = sys.stdin.readline().strip().split()
+            p = int(parts[0])
+            s = parts[1]
+            P.append(p)  # store parent index
+            S.append(s)  # store name
+            name_set.add(s)
+
+        # Map names to indices
+        U = sorted(list(name_set))
+        name_to_id = {name: idx + 1 for idx, name in enumerate(U)}  # names mapped to 1..|U|
+        M = len(U)
+
+        name_ids = [name_to_id[s] for s in S]  # list of name IDs
+
+        # Build tree
         tree = [[] for _ in range(N)]
         root = -1
         for i in range(N):
-            if P[i]==-1:
+            if P[i] == -1:
                 root = i
             else:
-                parent_idx = P[i]-1
-                tree[parent_idx].append(i)
+                tree[P[i] - 1].append(i)
 
-        # For D_i (descendants)
-        D = [0]*N
-        from collections import Counter
+        # Initialize A and D
+        A = [0] * N
+        D = [0] * N
 
-        # Post-order traversal
-        def dfs_descendants(u):
-            counts = Counter()
-            counts[S[u]] +=1
-            min_count = counts[S[u]]
-            min_name = S[u]
+        # Function to compute descendant counts (D_i)
+        def dfs_desc(u):
+            counts = {}
+            minfreq = None
+            minname = None
+
             for v in tree[u]:
-                child_counts = dfs_descendants(v)
-                # Merge counts using small-to-large
-                if len(counts)<len(child_counts):
+                child_counts, child_minfreq, child_minname = dfs_desc(v)
+                # Merge counts
+                if len(counts) < len(child_counts):
                     counts, child_counts = child_counts, counts
-                counts.update(child_counts)
-            # Find the name with the minimum count
-            min_count = None
-            min_name = None
-            for name, cnt in counts.items():
-                if min_count is None or cnt<min_count or (cnt==min_count and name_to_index[name]<name_to_index[min_name]):
-                    min_count = cnt
-                    min_name = name
-            D[u] = name_to_index[min_name]+1
-            return counts
-        dfs_descendants(root)
+                    minfreq, minname = child_minfreq, child_minname
+                for name, cnt in child_counts.items():
+                    counts[name] = counts.get(name, 0) + cnt
+                # Update minfreq and minname
+                if child_minfreq is not None:
+                    if minfreq is None or child_minfreq < minfreq or (child_minfreq == minfreq and child_minname < minname):
+                        minfreq = child_minfreq
+                        minname = child_minname
 
-        # For A_i (ancestors)
-        A = [0]*N
-
-        # Pre-order traversal
-        from collections import defaultdict
-
-        counts = Counter()
-        def dfs_ancestors(u):
-            # Before visiting u, counts contain counts of ancestors' names (excluding current node's name)
-            # Find the name with minimum count
-            min_count = None
-            min_name = None
+            # Compute D[u]
             if counts:
+                # Find minfreq and minname among counts
                 for name, cnt in counts.items():
-                    if min_count is None or cnt<min_count or (cnt==min_count and name_to_index[name]<name_to_index[min_name]):
-                        min_count = cnt
-                        min_name = name
-                A[u] = name_to_index[min_name]+1
+                    if minfreq is None or cnt < minfreq or (cnt == minfreq and name < minname):
+                        minfreq = cnt
+                        minname = name
+                D[u] = minname
             else:
-                A[u]=0
-            # Include current node's name for child nodes
-            counts[S[u]] +=1
+                D[u] = 0
+
+            # Update counts (exclude self)
+            name_id = name_ids[u]
+            counts[name_id] = counts.get(name_id, 0)  # exclude self
+
+            return counts, minfreq, minname
+
+        # Function to compute ancestor counts (A_i)
+        def dfs_anc(u, counts):
+            # Compute A[u]
+            if counts:
+                minfreq = None
+                minname = None
+                for name, cnt in counts.items():
+                    if minfreq is None or cnt < minfreq or (cnt == minfreq and name < minname):
+                        minfreq = cnt
+                        minname = name
+                A[u] = minname
+            else:
+                A[u] = 0
+
+            # Update counts with current node's name
+            name_id = name_ids[u]
+            counts[name_id] = counts.get(name_id, 0) + 1
+
             for v in tree[u]:
-                dfs_ancestors(v)
-            counts[S[u]] -=1
-            if counts[S[u]]==0:
-                del counts[S[u]]
-        dfs_ancestors(root)
+                dfs_anc(v, counts)
 
-        # Compute the hash
-        hash_value = 0
-        mod = 998244353
+            # Decrement counts after returning from recursion
+            counts[name_id] -= 1
+            if counts[name_id] == 0:
+                del counts[name_id]
+
+        # Compute D
+        dfs_desc(root)
+
+        # Compute A
+        counts_dict = {}
+        dfs_anc(root, counts_dict)
+
+        # Now compute the hash
+        hash_val = 0
+        U_size = len(U)
+        modulo = 998244353
         for i in range(N):
-            hash_value = (hash_value * (U_size + 1) + A[i]) % mod
-            hash_value = (hash_value * (U_size + 1) + D[i]) % mod
+            hash_val = (hash_val * (U_size + 1) + A[i]) % modulo
+            hash_val = (hash_val * (U_size + 1) + D[i]) % modulo
 
-        print(f"Case #{case_num}: {hash_value}")
+        print(f'Case #{test_case}: {hash_val}')
 
 if __name__ == "__main__":
     threading.Thread(target=main).start()

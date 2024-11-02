@@ -1,175 +1,121 @@
 import sys
-
-import sys
 import threading
 
 def main():
     import sys
+    import math
 
     sys.setrecursionlimit(1 << 25)
     T = int(sys.stdin.readline())
     for test_case in range(1, T + 1):
         N, K = map(int, sys.stdin.readline().split())
-        grid = [sys.stdin.readline().strip() for _ in range(N)]
+        grid = []
+        for _ in range(N):
+            row = sys.stdin.readline().strip()
+            grid.append(row)
         
-        # Find initial '1's
-        ones = [(i, j) for i in range(N) for j in range(N) if grid[i][j] == '1']
-        if not ones:
-            # No '1's initially, need to set at least one '1'
-            # The cover is the smallest rectangle containing all '1's
-            # To maximize area, set K '1's to cover the largest possible rectangle
-            # The maximum rectangle is N x N, achievable if K >=1
-            # So area is N*N
-            # But need to set at least one '1', which can be anywhere
-            # So cover is 1x1, but K >=1 allows larger
-            # To maximize, set '1's in corners
-            # So cover can be up to N x N
-            if K >=1:
-                area = N * N
-            else:
-                area = 0  # According to constraints, K + number of '1's >=1
+        # Find existing '1's
+        existing_rows = set()
+        existing_cols = set()
+        ques = []
+        for r in range(N):
+            for c in range(N):
+                if grid[r][c] == '1':
+                    existing_rows.add(r)
+                    existing_cols.add(c)
+                elif grid[r][c] == '?':
+                    ques.append( (r, c) )
+        
+        if not existing_rows or not existing_cols:
+            # No '1's, need to set at least one '1'
+            min_row = N
+            max_row = -1
+            min_col = N
+            max_col = -1
         else:
-            min_row = min(i for i, _ in ones)
-            max_row = max(i for i, _ in ones)
-            min_col = min(j for _, j in ones)
-            max_col = max(j for _, j in ones)
-            
-            # Current cover area
-            current_area = (max_row - min_row + 1) * (max_col - min_col + 1)
-            
-            # To maximize the area, we can try to expand the rectangle
-            # by extending top, bottom, left, or right
-
-            # For each possible extension, compute the number of '?' in that row/column
-            # to set at least one '1' to allow extension
-            # We can prioritize extensions that require fewer '1's
-
-            # Precompute for each row and column the number of '?'s
-            row_q = [0]*N
-            for i in range(N):
-                row_q[i] = grid[i].count('?')
-
-            col_q = [0]*N
-            for j in range(N):
-                col_q[j] = sum(1 for i in range(N) if grid[i][j] == '?')
-
-            # Possible to expand upwards (decreasing row)
-            max_extend_up = min_row
-            # Possible to expand downwards (increasing row)
-            max_extend_down = N - 1 - max_row
-            # Possible to expand leftwards (decreasing col)
-            max_extend_left = min_col
-            # Possible to expand rightwards (increasing col)
-            max_extend_right = N - 1 - max_col
-
-            # To maximize area, we'd prefer to maximize the rectangle
-            # So we can try to choose how much to extend each side, given K
-            # We'll iterate over possible extensions and choose the best
-
-            # To limit the computation, iterate over possible extensions for rows and cols
-            # The number of extensions is limited by K and possible extensions
-
-            # Precompute prefix sums for rows and columns to know how many '?'s to set
-            # to extend by certain amount
-            # For up extensions
-            up_cost = [0]*(max_extend_up +1)
-            for e in range(1, max_extend_up +1):
-                row = min_row - e
-                if row <0:
-                    up_cost[e] = float('inf')
-                else:
-                    up_cost[e] = row_q[row]
-            # Similarly for down, left, right
-            down_cost = [0]*(max_extend_down +1)
-            for e in range(1, max_extend_down +1):
-                row = max_row + e
-                if row >= N:
-                    down_cost[e] = float('inf')
-                else:
-                    down_cost[e] = row_q[row]
-            left_cost = [0]*(max_extend_left +1)
-            for e in range(1, max_extend_left +1):
-                col = min_col - e
-                if col <0:
-                    left_cost[e] = float('inf')
-                else:
-                    left_cost[e] = col_q[col]
-            right_cost = [0]*(max_extend_right +1)
-            for e in range(1, max_extend_right +1):
-                col = max_col + e
-                if col >= N:
-                    right_cost[e] = float('inf')
-                else:
-                    right_cost[e] = col_q[col]
-            
-            # Now, we need to choose e_up, e_down, e_left, e_right
-            # such that sum of required '1's <= K
-            # and maximize (range_rows) * (range_cols)
-            # where range_rows = (max_row + e_down) - (min_row - e_up) +1
-            # and range_cols = (max_col + e_right) - (min_col - e_left) +1
-
-            # To optimize, iterate over possible e_up and e_down,
-            # and for each, find possible e_left and e_right within remaining K
-
-            # To speed up, precompute cumulative costs
-            up_cum = [0]*(max_extend_up +1)
-            for e in range(1, max_extend_up +1):
-                up_cum[e] = up_cum[e-1] + up_cost[e]
-
-            down_cum = [0]*(max_extend_down +1)
-            for e in range(1, max_extend_down +1):
-                down_cum[e] = down_cum[e-1] + down_cost[e]
-
-            left_cum = [0]*(max_extend_left +1)
-            for e in range(1, max_extend_left +1):
-                left_cum[e] = left_cum[e-1] + left_cost[e]
-
-            right_cum = [0]*(max_extend_right +1)
-            for e in range(1, max_extend_right +1):
-                right_cum[e] = right_cum[e-1] + right_cost[e]
-
-            max_area = current_area
-            # Iterate over possible e_up and e_down
-            for e_up in range(0, max_extend_up +1):
-                cost_up = up_cum[e_up]
-                if cost_up > K:
-                    break
-                for e_down in range(0, max_extend_down +1):
-                    cost_down = down_cum[e_down]
-                    total_cost_rows = cost_up + cost_down
-                    if total_cost_rows > K:
-                        break
-                    remaining_K = K - total_cost_rows
-                    # Now, choose e_left and e_right such that left_cum[e_left] + right_cum[e_right] <= remaining_K
-                    # To maximize (columns)
-                    # We can iterate e_left and find the maximum e_right possible
-                    max_e_left = max_extend_left
-                    max_e_right = max_extend_right
-                    # To optimize, iterate e_left and compute the possible e_right
-                    for e_left in range(0, max_extend_left +1):
-                        cost_l = left_cum[e_left]
-                        if cost_l > remaining_K:
-                            break
-                        rem = remaining_K - cost_l
-                        # Binary search for max e_right where right_cum[e_right] <= rem
-                        low =0
-                        high = max_extend_right
-                        while low <= high:
-                            mid = (low + high)//2
-                            if right_cum[mid] <= rem:
-                                low = mid +1
-                            else:
-                                high = mid -1
-                        e_right = high
-                        # Calculate area
-                        range_rows = (max_row + e_down) - (min_row - e_up) +1
-                        range_cols = (max_col + e_right) - (min_col - e_left) +1
-                        area = range_rows * range_cols
+            min_row = min(existing_rows)
+            max_row = max(existing_rows)
+            min_col = min(existing_cols)
+            max_col = max(existing_cols)
+        
+        # If K is 0, just compute current area
+        if K == 0:
+            if min_row > max_row or min_col > max_col:
+                area = 0
+            else:
+                area = (max_row - min_row +1) * (max_col - min_col +1)
+            print(f"Case #{test_case}: {area}")
+            continue
+        
+        # We need to choose K '?'s to set to '1's to maximize the area
+        # Strategy: try to set '1's to expand the boundaries as much as possible
+        # We'll collect all '?' positions sorted by their row and column
+        
+        # Potential candidates for expanding min_row
+        candidates_top = sorted([r for (r, c) in ques])
+        # Potential candidates for expanding max_row
+        candidates_bottom = sorted([r for (r, c) in ques], reverse=True)
+        # Potential candidates for expanding min_col
+        candidates_left = sorted([c for (r, c) in ques])
+        # Potential candidates for expanding max_col
+        candidates_right = sorted([c for (r, c) in ques], reverse=True)
+        
+        # To maximize the span, we need to maximize max_row - min_row and max_col - min_col
+        # Let's try to extend min_row and max_row by setting '1's in as low and as high rows as possible
+        # Similarly for columns
+        
+        # We'll try different numbers of expansions on each boundary, within K
+        # To keep it efficient, we'll limit the number of possibilities
+        # For each boundary, find up to K possible expansions
+        
+        max_possible_expansions = min(K, 10)  # limit to 10 to keep it efficient
+        expansions = list(range(0, max_possible_expansions +1))
+        
+        # Precompute the number of '1's needed to set to reach a certain expansion
+        top_cost = [0]
+        for i in range(1, len(candidates_top)+1):
+            if candidates_top[i-1] < min_row:
+                top_cost.append(top_cost[-1] +1)
+            else:
+                top_cost.append(top_cost[-1])
+        bottom_cost = [0]
+        for i in range(1, len(candidates_bottom)+1):
+            if candidates_bottom[i-1] > max_row:
+                bottom_cost.append(bottom_cost[-1] +1)
+            else:
+                bottom_cost.append(bottom_cost[-1])
+        left_cost = [0]
+        for i in range(1, len(candidates_left)+1):
+            if candidates_left[i-1] < min_col:
+                left_cost.append(left_cost[-1] +1)
+            else:
+                left_cost.append(left_cost[-1])
+        right_cost = [0]
+        for i in range(1, len(candidates_right)+1):
+            if candidates_right[i-1] > max_col:
+                right_cost.append(right_cost[-1] +1)
+            else:
+                right_cost.append(right_cost[-1])
+        
+        # Initialize maximum area
+        initial_area = (max_row - min_row +1) * (max_col - min_col +1) if min_row <= max_row and min_col <= max_col else 0
+        max_area = initial_area
+        
+        # Try all possible combinations of expansions
+        for t in range(0, min(max_possible_expansions, len(candidates_top)) +1):
+            for b in range(0, min(max_possible_expansions, len(candidates_bottom)) +1):
+                for l in range(0, min(max_possible_expansions, len(candidates_left)) +1):
+                    for r in range(0, min(max_possible_expansions, len(candidates_right)) +1):
+                        cost = top_cost[t] + bottom_cost[b] + left_cost[l] + right_cost[r]
+                        if cost > K:
+                            continue
+                        new_min_row = min(min_row, candidates_top[t-1] if t >0 else min_row)
+                        new_max_row = max(max_row, candidates_bottom[b-1] if b >0 else max_row)
+                        new_min_col = min(min_col, candidates_left[l-1] if l >0 else min_col)
+                        new_max_col = max(max_col, candidates_right[r-1] if r >0 else max_col)
+                        area = (new_max_row - new_min_row +1) * (new_max_col - new_min_col +1)
                         if area > max_area:
                             max_area = area
-            # Similarly, iterate e_left and e_right first
-            # But the above should cover all possibilities
-
         print(f"Case #{test_case}: {max_area}")
 
-threading.Thread(target=main).start()
+threading.Thread(target=main,).start()

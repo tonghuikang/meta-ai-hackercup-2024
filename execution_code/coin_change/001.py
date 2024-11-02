@@ -1,75 +1,45 @@
 import sys
 import math
 
-def readints():
-    return list(map(int, sys.stdin.readline().split()))
-
-T = int(sys.stdin.readline())
-for case_num in range(1, T + 1):
-    N_str, P_str = sys.stdin.readline().split()
-    N = int(N_str)
-    P = float(P_str)
-
-    N_float = float(N)
-    # Handle P == 0 separately
-    if P == 0.0:
-        # Total expected bills is N * H_N
-        # Since N can be large, use ln(N) approximation
-        total_expected_bills = N_float * (math.log(N_float) + 0.5772156649)
+def compute_expected_bills(N, P):
+    if P == 0:
+        # Expected bills when always using D=1
+        gamma = 0.5772156649015328606  # Euler-Mascheroni constant
+        return N * (math.log(N) + gamma)
+    elif P == 100:
+        # Optimal to use D=2 after the first coin
+        if N == 1:
+            return 1.0
+        else:
+            # Expected bills for the first coin
+            E_first = 1.0
+            # Expected bills to get second coin (with D=1)
+            E_second = N / (N - 1)
+            # Expected bills for remaining coins
+            E_remaining = (N - 2) * 2
+            return E_first + E_second + E_remaining
     else:
-        # Build a list of (s, D) pairs
-        D_list = []
-        D = 1
-        s = 1.0  # For D=1, s=1
-        D_list.append((s, D))
-        P_fraction = P / 100.0
-        D_max = 1000  # We'll limit D to prevent infinite loops (since P can be small)
-        for D in range(2, D_max + 1):
-            p_new = min((D - 1) * P_fraction, 1.0)
-            # If p_new == 0 and D > 1, no benefit in further D
-            if p_new == 0.0:
-                break
-            if p_new < 1.0:
-                s = p_new / (D - 1 + p_new)
-            else:
-                s = 1.0 / D
-            D_list.append((s, D))
-            if p_new == 1.0:
-                # For p_new == 1, further increases in D only decrease s, which may be unnecessary
-                break
-        # Sort D_list in decreasing s
-        D_list.sort(reverse=True)
-        # Build ranges of s where D is optimal
-        total_expected_bills = 0.0
-        s_prev = 1.0
-        # Append (0.0, None) to handle the last range
-        D_list.append((0.0, None))
-        for i in range(len(D_list) -1 ):
-            s_curr, D_curr = D_list[i]
-            s_next, D_next = D_list[i +1]
-            # For S/N in [s_next, s_curr), D_curr is optimal
-            S_prev = s_curr * N_float
-            S_next = s_next * N_float
-            if D_curr == 1:
-                # For D=1, total_expected_bills = N * [ ln(S_prev / S_next ) ]
-                total_expected_bills += N_float * (math.log(S_prev) - math.log(S_next))
-            elif D_curr is not None:
-                p_new = min((D_curr -1) * P_fraction, 1.0)
-                if p_new == 1.0:
-                    # Total expected bills = D * (S_prev - S_next )
-                    expected_bills = D_curr * (S_prev - S_next)
-                    total_expected_bills += expected_bills
-                else:
-                    a = p_new
-                    b = 1.0 - p_new
-                    coeff = D_curr * N_float / b
-                    x1 = (S_prev) / N_float
-                    x2 = (S_next) / N_float
-                    term1 = math.log(a + b * x1)
-                    term2 = math.log(a + b * x2)
-                    total_expected_bills += coeff * (term1 - term2)
-        # Adjust total_expected_bills if negative due to numerical errors
-        total_expected_bills = max(total_expected_bills, 0.0)
+        s_crossover = P / (100.0 + P)
+        k_crossover = N * (1 - s_crossover)
+        D_star = math.ceil(100.0 / P + 1)
+        # Expected bills in phase 1
+        if s_crossover <= 0:
+            E_phase1 = 0.0
+        else:
+            E_phase1 = -math.log(P / (100.0 + P))
+        # Expected bills in phase 2
+        E_phase2 = N * s_crossover * D_star
+        E_total = E_phase1 + E_phase2
+        return E_total
 
-    # Format the output with sufficient precision
-    print(f"Case #{case_num}: {total_expected_bills}")
+def main():
+    T = int(sys.stdin.readline())
+    for case_num in range(1, T + 1):
+        N_str, P_str = sys.stdin.readline().split()
+        N = int(N_str)
+        P = int(P_str)
+        expected_bills = compute_expected_bills(N, P)
+        print(f"Case #{case_num}: {expected_bills}")
+
+if __name__ == "__main__":
+    main()

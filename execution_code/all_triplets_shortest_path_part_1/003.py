@@ -1,99 +1,90 @@
 import sys
 import sys
 import sys
+from collections import deque
+
 def main():
     import sys
     import sys
-    from collections import deque
-    input = sys.stdin.read
-    data = input().split()
-    idx = 0
-    T = int(data[idx]); idx +=1
-    for test in range(1, T+1):
-        N = int(data[idx]); idx +=1
+    sys.setrecursionlimit(1 << 25)
+    input = sys.stdin.read().split()
+    ptr = 0
+    T = int(input[ptr]); ptr +=1
+    for test_case in range(1, T+1):
+        N = int(input[ptr]); ptr +=1
         adj = [[] for _ in range(N+1)]
-        degree = [0]*(N+1)
         for _ in range(N-1):
-            u = int(data[idx]); v = int(data[idx+1]); idx +=2
-            adj[u].append(v)
-            adj[v].append(u)
-            degree[u] +=1
-            degree[v] +=1
-        if N ==1:
-            centers = [1]
-        else:
-            # Initialize leaves
-            q = deque()
-            for i in range(1,N+1):
-                if degree[i] <=1:
-                    q.append(i)
-            remaining = N
-            while remaining >2:
-                leaves_count = len(q)
-                remaining -= leaves_count
-                for _ in range(leaves_count):
-                    leaf = q.popleft()
-                    for neighbor in adj[leaf]:
-                        degree[neighbor] -=1
-                        if degree[neighbor] ==1:
-                            q.append(neighbor)
-            centers = list(q)
-        if len(centers)==1:
-            result = "Lucky"
-        else:
-            result = "Wrong"
-        print(f"Case #{test}: {result}")
-                
+            U = int(input[ptr]); ptr +=1
+            V = int(input[ptr]); ptr +=1
+            adj[U].append(V)
+            adj[V].append(U)
+        # BFS from node1
+        levels = [ -1 ] * (N+1)
+        q = deque()
+        q.append(1)
+        levels[1] =0
+        while q:
+            u = q.popleft()
+            for v in adj[u]:
+                if levels[v]==-1:
+                    levels[v] = levels[u] +1
+                    q.append(v)
+        # Check if levels are non-decreasing in label order
+        is_lucky = True
+        prev_level = -1
+        for node in range(1, N+1):
+            current_level = levels[node]
+            if current_level < prev_level:
+                is_lucky = False
+                break
+            prev_level = current_level
+        result = "Lucky" if is_lucky else "Wrong"
+        print(f"Case #{test_case}: {result}")
 
 if __name__ == "__main__":
     main()
 
 import sys
 import sys
-import sys
+from collections import deque
+
 def main():
     import sys
     import sys
-    from collections import deque
-    input = sys.stdin.read
-    data = input().split()
-    idx = 0
-    T = int(data[idx]); idx +=1
-    for test in range(1, T+1):
-        N = int(data[idx]); idx +=1
+    sys.setrecursionlimit(1 << 25)
+    input = sys.stdin.read().split()
+    ptr = 0
+    T = int(input[ptr]); ptr +=1
+    for test_case in range(1, T+1):
+        N = int(input[ptr]); ptr +=1
         adj = [[] for _ in range(N+1)]
-        degree = [0]*(N+1)
         for _ in range(N-1):
-            u = int(data[idx]); v = int(data[idx+1]); idx +=2
-            adj[u].append(v)
-            adj[v].append(u)
-            degree[u] +=1
-            degree[v] +=1
-        if N ==1:
-            centers = [1]
-        else:
-            # Initialize leaves
-            q = deque()
-            for i in range(1,N+1):
-                if degree[i] <=1:
-                    q.append(i)
-            remaining = N
-            while remaining >2:
-                leaves_count = len(q)
-                remaining -= leaves_count
-                for _ in range(leaves_count):
-                    leaf = q.popleft()
-                    for neighbor in adj[leaf]:
-                        degree[neighbor] -=1
-                        if degree[neighbor] ==1:
-                            q.append(neighbor)
-            centers = list(q)
-        if len(centers)==1:
-            result = "Lucky"
-        else:
-            result = "Wrong"
-        print(f"Case #{test}: {result}")
-                
+            U = int(input[ptr]); ptr +=1
+            V = int(input[ptr]); ptr +=1
+            adj[U].append(V)
+            adj[V].append(U)
+        # BFS from node1
+        levels = [ -1 ] * (N+1)
+        q = deque()
+        q.append(1)
+        levels[1] =0
+        while q:
+            u = q.popleft()
+            for v in adj[u]:
+                if levels[v]==-1:
+                    levels[v] = levels[u] +1
+                    q.append(v)
+        # Check if levels are non-decreasing in label order
+        is_lucky = True
+        prev_level = -1
+        for node in range(1, N+1):
+            current_level = levels[node]
+            if current_level < prev_level:
+                is_lucky = False
+                break
+            prev_level = current_level
+        result = "Lucky" if is_lucky else "Wrong"
+        print(f"Case #{test_case}: {result}")
 
 if __name__ == "__main__":
     main()
