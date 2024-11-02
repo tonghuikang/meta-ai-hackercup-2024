@@ -1,0 +1,28 @@
+You have an $N\times N$ boolean matrix $G$, except some cells have not been set to either `0` or `1` and are instead marked as `?`.
+
+The *cover* of $G$ is the smallest rectangular sub-matrix that contains every `1` in $G$ (and may also contain `0` or unset `?` cells).
+
+You'd like to set exactly $K$ of the `?` cells to `1`, and then compute the cover. What is the maximum area of the cover that you can achieve?
+
+# Constraints
+\(1 \leq T \leq 50\)
+\(1 \leq N \leq 2{,}500\)
+\(0 \leq K \leq\) number of `?`s in the grid
+\(0 \lt K +\) number of `1`s in the grid
+
+The sum of $N^2$ across all test cases is at most $100{,}000{,}000$.
+
+*Note: The full input file for this problem is large (close to 100MB), so we strongly recommend downloading the encrypted zip file.*
+
+# Input Format
+Input begins with an integer \(T\), the number of test cases. The first line of each case contains the integers $N$ and $K$. Then, $N$ lines follow, the \(i\)th of which contains $N$ characters, the \(i\)th row of $G$.
+
+# Output Format
+For the \(i\)th test case, print "`Case #i:` " followed by the area of the maximum cover you can achieve by changing $K$ of the `?`s in $G$ to `1`s.
+
+# Sample Explanation
+In the first case, changing the center `?` to `1` gives us a cover with area \(2 \times 2 = 4\). Changing the upper-right `?` to `1` only gives us a cover with area \(3 \times 1 = 3\).
+
+In the second case, the only choice is to change both `?`s to `1`s, resulting in a cover with area \(3 \times 2 = 6\).
+
+In the third case, any choice results in a cover with area $1$.

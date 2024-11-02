@@ -1,0 +1,13 @@
+Case #1: 5.5
+Case #2: 4.5
+Case #3: 19.956349206349206
+Case #4: 227.38605590252325
+Case #5: 4976.622131757481
+Case #6: 2.203697464000E+10
+An error happened during execution:
+Traceback (most recent call last):
+  File "/tmp/tmp7ll9vu0r.py", line 243, in <module>
+    main()
+  File "/tmp/tmp7ll9vu0r.py", line 228, in main
+    T=int(data[0])
+IndexError: list index out of range

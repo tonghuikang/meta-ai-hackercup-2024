@@ -1,0 +1,56 @@
+Staring at your family tree, you’d like to figure out who your *least common ancestor* is. That is, out of all the names of all your ancestors, which name appears the fewest times? While you’re at it, which name is the least common amongst all of your descendants? And why stop there? Why not figure out these values for *everybody* in your family tree?
+
+Your family tree has $N$ people, numbered from $1$ to $N$. The \(i\)th person has name $S_i$, and parent $P_i$. Person $1$ is the root of the tree and $P_1$ is always `-1`.
+
+Let \(U\) be the list of unique names that appear in $S$, in lexicographically increasing order.
+
+For each person $i$, let $A_i$ be the ($1$-indexed) index of the name in $U$ that is least common among all ancestors of person $i$, and $D_i$ be the index of the name in $U$ that is least common among all descendants of person $i$. If there’s a tie for the least common name, we choose the name with the lowest index in $U$. If the person has no ancestors or no descendants, then $A_i$ or $D_i$ is $0$, respectively.
+
+To reduce the output size, output a hash of the arrays $A$ and $D$, computed as follows:
+
+```
+  hash := 0
+  for i := 1 to N:
+      hash := hash * (|U| + 1) + A[i]
+      hash := hash * (|U| + 1) + D[i]
+      hash := hash mod 998,244,353
+```
+
+# Constraints
+\(1 \leq T \leq 100\)
+\(2 \leq N \leq 3{,}000{,}000\)
+\(1 \leq P_i \lt i\) (except for $P_1$ which is always $-1$)
+\(1 \leq |S_i| \leq 6\)
+
+The sum of $N$ across all test cases is less than $8{,}000{,}000$.
+
+*Note: The full input file for this problem is large (close to 100MB), so we strongly recommend downloading the encrypted zip file.*
+
+# Input Format
+Input begins with an integer \(T\), the number of test cases. The first line of each case contains the integer $N$. Then, $N$ lines follow, the \(i\)th of which contains the integer $P_i$ and the string $S_i$.
+
+# Output Format
+For the \(i\)th test case, print "`Case #i:` " followed by a single integer, the hash of the values in $A$ and $D$ as described above.
+
+# Sample Explanation
+In the first test case:
+- \(U = [\)`alice`, `bob`\(]\)
+- \(A = [0, 1]\) 
+- \(D = [2, 0]\) 
+- `hash` \(= 0 \cdot 3^3 + 2 \cdot 3^2 + 1 \cdot 3^1 + 0 \cdot 3^0 = 21\)
+
+In the second test case (depicted below):
+- \(U = [\)`alice`, `anna`, `bob`, `carl`\(]\)
+- \(A = [0, 1, 1, 3, 3, 1, 1, 3]\)
+- \(D = [4, 2, 2, 0, 0, 1, 2, 0]\)
+- `hash` \(= 26{,}197{,}503{,}940\ \text{mod} \ 998{,}244{,}353 = 243{,}150{,}762\)
+
+{{PHOTO_ID:1762640170976848|WIDTH:800}}
+
+In the third test case (depicted below):
+- \(U = [\)`abby`, `alice`, `bob`, `carl`, `dan`, `emily`\(]\)
+- \(A = [0, 2, 2, 2, 2, 2, 3, 6, 3, 3]\)
+- \(D = [3, 2, 2, 4, 1, 0, 5, 0, 0, 0]\)
+- `hash` \(= 5{,}428{,}072{,}716{,}176{,}880\ \text{mod} \ 998{,}244{,}353 = 255{,}661{,}373\)
+
+{{PHOTO_ID:1892204327937592|WIDTH:800}}
