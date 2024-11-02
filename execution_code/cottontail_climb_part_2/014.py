@@ -1,70 +1,88 @@
 import sys
-import math
-from itertools import product
+import bisect
+from itertools import combinations_with_replacement, product
 
-def generate_mountain_numbers(max_digits):
+def generate_non_decreasing_sequences(k, max_digit):
+    """
+    Generate all non-decreasing sequences of length k with digits from 1 to max_digit -1
+    """
+    if k == 0:
+        return [()]
+    # Use combinations with replacement
+    return list(combinations_with_replacement(range(1, max_digit), k))
+
+def generate_non_increasing_sequences(k, max_digit):
+    """
+    Generate all non-increasing sequences of length k with digits from 1 to max_digit -1
+    """
+    if k == 0:
+        return [()]
+    # Generate combinations with replacement in reverse order
+    sequences = list(combinations_with_replacement(range(1, max_digit), k))
+    # For each combination, sort descending to make non-increasing
+    return [tuple(sorted(seq, reverse=True)) for seq in sequences]
+
+def generate_all_mountains():
     mountains = []
-    # Only odd lengths
-    for length in range(1, max_digits + 1, 2):
-        k = length // 2
-        # Generate all possible first k+1 digits (non-decreasing, no zeros)
-        def backtrack(prefix, last_digit, pos):
-            if pos == k + 1:
-                # Now, the middle digit must be unique
-                for mid_digit in range(1, 10):
-                    if mid_digit != prefix[-1]:
-                        # Now, generate the last k digits (non-increasing)
-                        def backtrack_suffix(suffix, last, p):
-                            if p == k:
-                                mountain = int(''.join(map(str, prefix + [mid_digit] + suffix)))
-                                mountains.append(mountain)
-                                return
-                            for d in range(1, last + 1):
-                                backtrack_suffix(suffix + [d], d, p + 1)
-                        backtrack_suffix([], mid_digit, 0)
-                return
-            for d in range(last_digit, 10):
-                backtrack(prefix + [d], d, pos + 1)
-        # Initialize backtracking with first digit from 1 to 9
-        for first_digit in range(1, 10):
-            backtrack([first_digit], first_digit, 1)
+    # Lengths: 1,3,5,...,19
+    for n in range(1, 20, 2):
+        k = (n -1)//2
+        if k ==0:
+            # Single-digit mountains
+            for d in range(1,10):
+                mountains.append(d)
+        else:
+            # For k >=1, generate mountains
+            for peak in range(2,10):
+                # First k digits: non-decreasing sequences with digits < peak
+                first_half_seqs = generate_non_decreasing_sequences(k, peak)
+                if not first_half_seqs:
+                    continue
+                # Last k digits: non-increasing sequences with digits < peak
+                last_half_seqs = generate_non_increasing_sequences(k, peak)
+                if not last_half_seqs:
+                    continue
+                # Combine all possible sequences
+                for first in first_half_seqs:
+                    for last in last_half_seqs:
+                        # To ensure that peak appears only once, check that peak doesn't appear in first or last
+                        if peak in first or peak in last:
+                            continue
+                        # Build the number
+                        number_digits = first + (peak,) + last
+                        # Convert to integer
+                        number = 0
+                        for d in number_digits:
+                            number = number * 10 + d
+                        mountains.append(number)
+    # Sort the mountains
+    mountains.sort()
     return mountains
 
 def main():
-    T = int(sys.stdin.readline())
-    test_cases = [tuple(map(int, sys.stdin.readline().split())) for _ in range(T)]
-    max_B = max(b for _, b, _ in test_cases)
-    max_digits = len(str(max_B)) if max_B > 0 else 1
-    mountains = generate_mountain_numbers(max_digits)
-    mountains = sorted(mountains)
-    # Precompute prefixes for mountains
-    for idx, (A, B, M) in enumerate(test_cases, 1):
-        # Binary search to find the relevant mountains
-        left = 0
-        right = len(mountains)
-        # Find the first mountain >= A
-        while left < right:
-            mid = (left + right) // 2
-            if mountains[mid] < A:
-                left = mid + 1
+    import sys
+    import threading
+    def run():
+        mountains = generate_all_mountains()
+        T = int(sys.stdin.readline())
+        for case in range(1, T+1):
+            A, B, M = map(int, sys.stdin.readline().split())
+            # Find left index: first mountain >= A
+            left = bisect.bisect_left(mountains, A)
+            # Find right index: first mountain > B
+            right = bisect.bisect_right(mountains, B)
+            count =0
+            # Iterate through mountain[left:right] and count divisible by M
+            if M ==1:
+                count = right - left
             else:
-                right = mid
-        start = left
-        # Find the first mountain > B
-        left = 0
-        right = len(mountains)
-        while left < right:
-            mid = (left + right) // 2
-            if mountains[mid] <= B:
-                left = mid + 1
-            else:
-                right = mid
-        end = left
-        count = 0
-        for num in mountains[start:end]:
-            if num % M == 0:
-                count += 1
-        print(f"Case #{idx}: {count}")
+                # To optimize, iterate and count
+                for num in mountains[left:right]:
+                    if num % M ==0:
+                        count +=1
+            print(f"Case #{case}: {count}")
+
+    threading.Thread(target=run).start()
 
 if __name__ == "__main__":
     main()

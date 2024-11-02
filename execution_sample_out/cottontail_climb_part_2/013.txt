@@ -1,5 +1,0 @@
-An error happened during execution:
-  File "/tmp/tmpcpa3in9y.py", line 43
-    if len(second_seq) == 1 or second_seq[1] < second_digit := second_seq[0]:
-       ^
-SyntaxError: cannot use assignment expressions with operator

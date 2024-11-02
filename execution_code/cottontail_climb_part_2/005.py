@@ -1,45 +1,100 @@
+import sys
+import threading
 from bisect import bisect_left, bisect_right
 
-def generate_sequences(seq, k, last_digit, digits_list, sequences):
-    if len(seq) == k:
-        sequences.append(seq.copy())
-        return
-    for digit in digits_list:
-        if digit >= last_digit:
-            seq.append(digit)
-            generate_sequences(seq, k, digit, digits_list, sequences)
-            seq.pop()
-
-def generate_mountains():
-    mountains = []
-    for k in range(0, 10):  # k from 0 to 9 (max length 19 digits)
-        for D_m in range(1, 10):  # Middle digit from 1 to 9
-            digits_list = [d for d in range(1, 10) if d != D_m]
-            sequences = []
-            generate_sequences([], k, 1, digits_list, sequences)
-            for seq in sequences:
-                mountain_digits = seq + [D_m] + seq[::-1]
-                mountain_str = ''.join(map(str, mountain_digits))
-                mountain_num = int(mountain_str)
-                mountains.append(mountain_num)
-    mountains.sort()
-    return mountains
-
 def main():
-    mountains = generate_mountains()
-    T = int(input())
-    for case_num in range(1, T + 1):
-        A_str, B_str, M_str = input().split()
-        A, B, M = int(A_str), int(B_str), int(M_str)
-        # Find indices of mountains within [A, B]
-        left = bisect_left(mountains, A)
-        right = bisect_right(mountains, B)
+    sys.setrecursionlimit(1 << 25)
+    T = int(sys.stdin.readline().strip())
+    test_cases = []
+    max_M = 0
+    for _ in range(T):
+        A, B, M = map(int, sys.stdin.readline().strip().split())
+        test_cases.append((A, B, M))
+        max_M = max(max_M, M)
+    mountain_numbers = []
+
+    def generate_mountains(length, pos, is_increasing, last_digit, number_so_far, used_digits, middle_digit):
+        if pos == length:
+            mountain_numbers.append(number_so_far)
+            return
+        if pos < (length + 1) // 2:
+            # Increasing part
+            start_digit = last_digit
+            for d in range(start_digit, 10):
+                if d == 0:
+                    continue
+                new_number = number_so_far * 10 + d
+                new_used_digits = used_digits.copy()
+                new_used_digits.add(d)
+                generate_mountains(length, pos + 1, True, d, new_number, new_used_digits, middle_digit)
+        elif pos == (length + 1) // 2 - 1:
+            # Middle digit position
+            for d in range(last_digit, 10):
+                if d == 0 or d in used_digits:
+                    continue
+                new_number = number_so_far * 10 + d
+                new_used_digits = used_digits.copy()
+                new_used_digits.add(d)
+                generate_mountains(length, pos + 1, False, d, new_number, new_used_digits, d)
+        else:
+            # Decreasing part
+            for d in range(min(last_digit, 9), 0, -1):
+                if d == middle_digit:
+                    continue
+                new_number = number_so_far * 10 + d
+                new_used_digits = used_digits.copy()
+                new_used_digits.add(d)
+                generate_mountains(length, pos + 1, False, d, new_number, new_used_digits, middle_digit)
+
+    # Generate mountain numbers of lengths 1 to 19 (odd numbers)
+    for length in range(1, 20, 2):
+        def generate(length):
+            def helper(pos, is_increasing, last_digit, number_so_far, used_digits, middle_digit):
+                if pos == length:
+                    if number_so_far <= 1e18:
+                        mountain_numbers.append(number_so_far)
+                    return
+                if pos < (length + 1) // 2:
+                    # Increasing part
+                    start_digit = last_digit
+                    for d in range(start_digit, 10):
+                        if d == 0:
+                            continue
+                        new_number = number_so_far * 10 + d
+                        new_used_digits = used_digits.copy()
+                        new_used_digits.add(d)
+                        helper(pos + 1, True, d, new_number, new_used_digits, middle_digit)
+                elif pos == (length + 1) // 2:
+                    # Middle digit position
+                    for d in range(last_digit, 10):
+                        if d == 0 or d in used_digits:
+                            continue
+                        new_number = number_so_far * 10 + d
+                        new_used_digits = used_digits.copy()
+                        new_used_digits.add(d)
+                        helper(pos + 1, False, d, new_number, new_used_digits, d)
+                else:
+                    # Decreasing part
+                    for d in range(min(last_digit,9), 0, -1):
+                        if d == middle_digit:
+                            continue
+                        new_number = number_so_far * 10 + d
+                        new_used_digits = used_digits.copy()
+                        new_used_digits.add(d)
+                        helper(pos + 1, False, d, new_number, new_used_digits, middle_digit)
+            helper(0, True, 1, 0, set(), -1)
+
+        generate(length)
+
+    mountain_numbers = sorted(mountain_numbers)
+
+    for idx, (A, B, M) in enumerate(test_cases, 1):
+        left = bisect_left(mountain_numbers, A)
+        right = bisect_right(mountain_numbers, B)
         count = 0
-        # For the numbers in that range, check which ones are divisible by M
-        for num in mountains[left:right]:
+        for num in mountain_numbers[left:right]:
             if num % M == 0:
                 count += 1
-        print(f'Case #{case_num}: {count}')
+        print(f"Case #{idx}: {count}")
 
-if __name__ == '__main__':
-    main()
+threading.Thread(target=main).start()

@@ -1,244 +1,71 @@
 import sys
-import sys
-import sys
-from functools import lru_cache
+import bisect
+from itertools import combinations_with_replacement, combinations
+from math import comb
 
-def readints():
-    return list(map(int, sys.stdin.read().split()))
+def generate_mountain_numbers():
+    mountains = []
+    # L = 2k+1 from 1 to 19
+    for L in range(1, 20, 2):
+        k = (L -1)//2
+        if k ==0:
+            # single digit numbers
+            for d in range(1,10):
+                mountains.append(d)
+            continue
+        for D_peak in range(1,10):
+            # First k digits: non-decreasing, digits from 1 to D_peak -1
+            if D_peak ==1:
+                continue  # No digits less than 1
+            # Number of non-decreasing sequences of length k with digits 1 to D_peak-1
+            # Equivalent to combinations with replacement
+            # We need to generate all possible sequences
+            # Using combinations_with_replacement
+            # Possible digits for first k digits: 1 to D_peak-1
+            digits_first = list(range(1, D_peak))
+            if not digits_first:
+                continue
+            # Generate all non-decreasing sequences of length k from digits_first
+            # Use combinations_with_replacement
+            first_sequences = list(combinations_with_replacement(digits_first, k))
+            # Similarly for last k digits: non-increasing sequences from 1 to D_peak-1
+            last_sequences = list(combinations_with_replacement(digits_first, k))
+            # For each combination in last_sequences, since it's non-increasing, reverse it
+            last_sequences = [seq[::-1] for seq in last_sequences]
+            # Now, for each first_sequence and last_sequence, combine with D_peak
+            for first in first_sequences:
+                for last in last_sequences:
+                    # Ensure that the last digit of first <= D_peak
+                    # But since first is non-decreasing and last is non-increasing, D_peak is the peak
+                    # Also, need to ensure that D_peak does not appear in first and last sequences
+                    # Which is already ensured since first and last sequences are from 1 to D_peak-1
+                    # Now, construct the number
+                    num_digits = list(first) + [D_peak] + list(last)
+                    num = 0
+                    for d in num_digits:
+                        num = num *10 + d
+                    mountains.append(num)
+    mountains = sorted(set(mountains))
+    return mountains
 
-def to_digits(n):
-    return list(map(int, str(n)))
+def main():
+    mountains = generate_mountain_numbers()
+    input = sys.stdin.read().split()
+    T = int(input[0])
+    index =1
+    for tc in range(1, T+1):
+        A = int(input[index])
+        B = int(input[index+1])
+        M = int(input[index+2])
+        index +=3
+        # Find mountains in [A,B]
+        left = bisect.bisect_left(mountains, A)
+        right = bisect.bisect_right(mountains, B)
+        count = 0
+        for num in mountains[left:right]:
+            if num % M ==0:
+                count +=1
+        print(f"Case #{tc}: {count}")
 
-def solve():
-    import sys
-    sys.setrecursionlimit(10000)
-    T,*rest = readints()
-    for test_case in range(1, T+1):
-        A, B, M = rest[(test_case-1)*3:(test_case)*3]
-        # The core function to count mountains ≤ X divisible by M
-        def count_mountains(X):
-            digits = to_digits(X)
-            n = len(digits)
-            total = 0
-            # Consider all possible odd lengths
-            for L in range(1, n+1, 2):
-                # If L < n, count all mountain numbers with length L
-                # If L == n, need to consider the upper bound
-                if L < n:
-                    total += count_mountains_of_length(L)
-                elif L == n:
-                    total += count_mountains_up_to(digits, L)
-            return total
-
-        # Count mountain numbers of exact length L
-        def count_mountains_of_length(L):
-            k = (L -1) //2
-            # First k+1 digits: non-decreasing, no zeros
-            # Middle digit appears exactly once
-            # Last k+1 digits: non-increasing, no zeros
-            # Total length L=2k+1
-            from itertools import product
-            count = 0
-            # To handle the uniqueness of the middle digit,
-            # we need to ensure that the middle digit does not appear in other positions
-            # So we can iterate over all possible non-decreasing first k+1 digits
-            # and all possible non-increasing last k+1 digits
-            # while ensuring that the middle digit is unique
-            # Implemented via DP
-            @lru_cache(None)
-            def dp(pos, tight, last, mid_pos, is_unique, used_mid, is_middle):
-                if pos == L:
-                    return int(is_unique)
-                total = 0
-                # Determine the range of digits
-                if pos ==0:
-                    start =1
-                else:
-                    start =1
-                end =9
-                for d in range(start, end+1):
-                    # For first k+1 digits, must be non-decreasing
-                    if pos < k+1:
-                        if pos >0 and d < last:
-                            continue
-                    # For last k+1 digits, must be non-increasing
-                    if pos >= k+1:
-                        if pos >0 and d > last:
-                            continue
-                    # Determine if current position is the middle
-                    mid = L//2
-                    current_is_middle = (pos == mid)
-                    # Handle uniqueness of middle digit
-                    if current_is_middle:
-                        # Middle digit has not been used before
-                        new_used_mid = set()
-                        new_used_mid = set()
-                        new_used_mid = frozenset([d])
-                        new_is_unique = True
-                        # Need to ensure that this digit does not appear elsewhere
-                        # So, in further digits, this digit cannot appear
-                        # This is complex to track; for simplification, skip uniqueness
-                        # Alternatively, accept that this approach does not track it
-                        # Hence, not implementing fully correct uniqueness
-                        # To implement properly, we need to track all digits used
-                        # which would be too slow
-                        # Thus, approximating by ensuring the middle digit is different from adjacent digits
-                        # This may not fully satisfy the problem, but due to time constraints, proceed
-                        # Alternatively, skip uniqueness condition
-                        # To proceed, ignore uniqueness for now
-                        pass
-                    # Continue to next position
-                    total += dp(pos+1, tight and (d == digits[pos] if pos < len(digits) else False), d, mid_pos, is_unique, used_mid, is_middle)
-                return total
-
-            # Placeholder: Implemented as 9^L, which is incorrect
-            # Needs proper implementation, but due to time constraints, skip
-            return 0  # Placeholder
-
-        # Count mountain numbers up to X with length L
-        def count_mountains_up_to(digits, L):
-            # Placeholder: Implemented as 0 for simplicity
-            return 0  # Placeholder
-
-        # Since the above functions are placeholders and not implemented,
-        # we'll implement a different approach
-
-        # Implement a digit DP that counts mountain numbers up to X divisible by M
-        def count_mountains_divisible(X):
-            digits = to_digits(X)
-            n = len(digits)
-
-            from functools import lru_cache
-
-            @lru_cache(maxsize=None)
-            def dp(pos, tight, prefix_inc, last_digit, peak_reached, unique_mid, mod, length, mid_digit):
-                if pos == length:
-                    if peak_reached and unique_mid and mod ==0:
-                        return 1
-                    else:
-                        return 0
-                limit = digits[pos] if tight else 9
-                total = 0
-                for d in range(1, limit+1):
-                    if tight and d > limit:
-                        continue
-                    new_tight = tight and (d == limit)
-                    if pos < (length)//2:
-                        if d < last_digit:
-                            continue
-                        new_peak_reached = peak_reached
-                        new_unique_mid = unique_mid
-                        new_mid_digit = mid_digit
-                    elif pos == (length)//2:
-                        new_peak_reached = True
-                        # Middle digit should be unique
-                        # This requires that it does not appear elsewhere
-                        new_unique_mid = True
-                        new_mid_digit = d
-                    else:
-                        if not peak_reached:
-                            continue
-                        if d > last_digit:
-                            continue
-                        # Ensure that d != mid_digit
-                        new_unique_mid = unique_mid and (d != mid_digit)
-                        new_mid_digit = mid_digit
-                    new_mod = (mod *10 +d)%M
-                    total += dp(pos+1, new_tight, prefix_inc, d, new_peak_reached, new_unique_mid, new_mod, length, new_mid_digit)
-                return total
-
-            total =0
-            for L in range(1, n+1, 2):
-                if L < n:
-                    # Count all mountain numbers of length L
-                    # Implemented as a separate DP
-                    # For simplicity, skip
-                    pass
-                elif L ==n:
-                    total += dp(0, True, False, 0, False, False, 0, L, 0)
-            return total
-
-        # Due to the complexity of properly implementing digit DP with all constraints,
-        # and time constraints, we'll instead generate all possible mountain numbers up to 10^6
-        # and check for each test case by brute force
-
-        # However, since B can be up to 1e18, this is not feasible
-        # Thus, we'll implement a simplified digit DP without the uniqueness condition
-
-        # Here's a simplified version without the uniqueness condition
-
-        from functools import lru_cache
-
-        def count(X):
-            digits = to_digits(X)
-            n = len(digits)
-
-            @lru_cache(None)
-            def helper(pos, tight, increasing, last, peak_reached, mod, length):
-                if pos == length:
-                    if peak_reached and mod == 0:
-                        return 1
-                    else:
-                        return 0
-                limit = digits[pos] if tight else 9
-                total = 0
-                for d in range(1, limit+1):
-                    if tight and d > limit:
-                        continue
-                    new_tight = tight and (d == limit)
-                    if pos < length//2:
-                        if d < last:
-                            continue
-                        total += helper(pos+1, new_tight, True, d, False, (mod*10 + d)%M, length)
-                    elif pos == length//2:
-                        # Peak
-                        total += helper(pos+1, new_tight, False, d, True, (mod*10 + d)%M, length)
-                    else:
-                        if not peak_reached:
-                            continue
-                        if d > last:
-                            continue
-                        total += helper(pos+1, new_tight, False, d, peak_reached, (mod*10 + d)%M, length)
-                return total
-
-            total =0
-            for L in range(1, n+1, 2):
-                if L < n:
-                    # Count all mountain numbers of length L
-                    # Implemented as a separate DP with tight=False
-                    # Modify the helper to not be tight
-                    @lru_cache(None)
-                    def helper_fixed(pos, increasing, last, peak_reached, mod, length):
-                        if pos == length:
-                            if peak_reached and mod ==0:
-                                return 1
-                            else:
-                                return 0
-                        total_f =0
-                        for d in range(1,10):
-                            if pos < length//2:
-                                if d < last:
-                                    continue
-                                total_f += helper_fixed(pos+1, True, d, False, (mod*10 + d)%M, length)
-                            elif pos == length//2:
-                                total_f += helper_fixed(pos+1, False, d, True, (mod*10 + d)%M, length)
-                            else:
-                                if not peak_reached:
-                                    continue
-                                if d > last:
-                                    continue
-                                total_f += helper_fixed(pos+1, False, d, peak_reached, (mod*10 + d)%M, length)
-                        return total_f
-                    total += helper_fixed(0, False, 0, False, 0, L)
-                elif L ==n:
-                    total += helper(0, True, False, 0, False, 0, L)
-            return total
-
-        # This simplified version does not handle the uniqueness of the middle digit
-        # Given time constraints, proceed with this version and accept possible inaccuracies
-
-        # Compute count for B and A-1
-        cnt_B = count(B)
-        cnt_A = count(A-1) if A >0 else 0
-        result = cnt_B - cnt_A
-        print(f"Case #{test_case}: {result}")
+if __name__ == "__main__":
+    main()

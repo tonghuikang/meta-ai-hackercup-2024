@@ -1,66 +1,53 @@
 import sys
-import itertools
 import bisect
 
 def generate_mountain_numbers():
     mountains = []
-    for k in range(0, 10):
-        l = 2 * k + 1
-        if k == 0:
-            # Single-digit mountain numbers
-            for D in range(1, 10):
-                mountains.append(D)
+
+    def backtrack(k, pos, current, last, unique_mid, digits_set, mid_digit, n):
+        if pos == n:
+            num = int(''.join(map(str, current)))
+            mountains.append(num)
+            return
+        if pos == k:
+            # Middle digit, must be unique
+            for d in range(1, 10):
+                if d not in digits_set:
+                    current.append(d)
+                    backtrack(k, pos + 1, current, d, True, digits_set | {d}, d, n)
+                    current.pop()
+        elif pos < k:
+            for d in range(last, 10):
+                if d not in digits_set:
+                    current.append(d)
+                    backtrack(k, pos + 1, current, d, unique_mid, digits_set | {d}, mid_digit, n)
+                    current.pop()
         else:
-            # For each possible middle digit D
-            for D in range(1, 10):
-                # Generate all non-decreasing prefixes of length k with digits < D
-                # Using combinations with replacement from 1 to D-1
-                if D == 1:
-                    # If D is 1, all prefix digits must be <1, which is invalid
-                    continue
-                # Generate non-decreasing sequences of length k from 1 to D-1
-                for prefix in itertools.combinations_with_replacement(range(1, D), k):
-                    prefix = list(prefix)
-                    # Append the middle digit D
-                    full_prefix = prefix + [D]
-                    # Now generate non-increasing suffix of length k with digits <= D-1
-                    # This is equivalent to non-decreasing sequences from 1 to D-1, reversed
-                    suffix_sequences = itertools.combinations_with_replacement(range(1, D), k)
-                    for suffix in suffix_sequences:
-                        suffix = list(suffix)
-                        # To make it non-increasing, reverse the non-decreasing sequence
-                        suffix = suffix[::-1]
-                        # Combine prefix and suffix
-                        number_digits = full_prefix + suffix
-                        # Convert digits to integer
-                        number = 0
-                        for digit in number_digits:
-                            number = number * 10 + digit
-                        mountains.append(number)
-    mountains = sorted(mountains)
+            # After middle digit, non-increasing
+            for d in range(current[k] if pos == k +1 else current[-1], 0, -1):
+                if d not in digits_set:
+                    current.append(d)
+                    backtrack(k, pos + 1, current, d, unique_mid, digits_set | {d}, mid_digit, n)
+                    current.pop()
+
+    for n in range(1, 20, 2):
+        k = n // 2
+        backtrack(k, 0, [], 0, False, set(), 0, n)
+
+    mountains.sort()
     return mountains
 
 def main():
     mountains = generate_mountain_numbers()
     T = int(sys.stdin.readline())
-    for case in range(1, T + 1):
-        line = ''
-        while line.strip() == '':
-            line = sys.stdin.readline()
-            if not line:
-                break
-        if not line:
-            break
-        A_str, B_str, M_str = line.strip().split()
-        A = int(A_str)
-        B = int(B_str)
-        M = int(M_str)
-        # Find left and right indices using bisect
+    for case in range(1, T +1):
+        A, B, M = map(int, sys.stdin.readline().split())
+        # Find the range in mountains
         left = bisect.bisect_left(mountains, A)
         right = bisect.bisect_right(mountains, B)
         count = 0
         for num in mountains[left:right]:
-            if num % M == 0:
+            if num % M ==0:
                 count +=1
         print(f"Case #{case}: {count}")
 

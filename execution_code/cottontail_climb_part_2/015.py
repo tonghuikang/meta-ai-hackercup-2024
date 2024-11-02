@@ -1,59 +1,80 @@
 import sys
 import bisect
-from itertools import combinations_with_repetition
 
-def generate_non_decreasing_sequences(length, exclude_digit):
-    if length == 0:
-        return [()]
-    digits = [d for d in range(1, 10) if d != exclude_digit]
-    # Use combinations_with_repetition to generate non-decreasing sequences
-    return list(combinations_with_repetition(digits, length))
+def generate_non_decreasing(length, start, path, results):
+    if len(path) == length:
+        results.append(path.copy())
+        return
+    for digit in range(start, 10):
+        path.append(digit)
+        generate_non_decreasing(length, digit, path, results)
+        path.pop()
 
-def generate_non_increasing_sequences(length, exclude_digit):
-    if length == 0:
-        return [()]
-    digits = [d for d in range(1, 10) if d != exclude_digit]
-    # Generate non-increasing sequences by reversing combinations_with_repetition
-    return [tuple(sorted(seq, reverse=True)) for seq in combinations_with_repetition(digits, length)]
-
-def generate_mountains():
-    mountains = []
-    for total_length in range(1, 20, 2):  # Odd lengths from 1 to 19
-        k = (total_length - 1) // 2
-        for peak in range(1, 10):
-            if k == 0:
-                mountains.append(peak)
-            else:
-                left_sequences = generate_non_decreasing_sequences(k, peak)
-                right_sequences = generate_non_increasing_sequences(k, peak)
-                for left in left_sequences:
-                    for right in right_sequences:
-                        # Combine left, peak, and right into a single number
-                        number_digits = left + (peak,) + right
-                        # Convert tuple of digits to integer
-                        number = int(''.join(map(str, number_digits)))
-                        mountains.append(number)
-    mountains.sort()
-    return mountains
+def generate_non_increasing(length, max_digit, path, results):
+    if len(path) == length:
+        results.append(path.copy())
+        return
+    for digit in range(max_digit, 0, -1):
+        path.append(digit)
+        generate_non_increasing(length, digit, path, results)
+        path.pop()
 
 def main():
-    mountains = generate_mountains()
+    import sys
+
+    mountains = []
+
+    for k in range(0, 10):
+        length = 2 * k +1
+        if length >19:
+            continue
+        first_part_results = []
+        generate_non_decreasing(k +1, 1, [], first_part_results)
+        for first_part in first_part_results:
+            mid_digit = first_part[-1]
+            if k ==0:
+                # Single digit mountain
+                number = 0
+                for d in first_part:
+                    number = number *10 + d
+                mountains.append(number)
+            else:
+                if mid_digit <=1:
+                    continue
+                last_part_results = []
+                generate_non_increasing(k, mid_digit -1, [], last_part_results)
+                for last_part in last_part_results:
+                    number = 0
+                    for d in first_part:
+                        number = number *10 + d
+                    for d in last_part:
+                        number = number *10 + d
+                    mountains.append(number)
+
+    # Sort the mountains list
+    mountains.sort()
+
+    # Read input
     input = sys.stdin.read().split()
     T = int(input[0])
-    idx = 1
-    for case in range(1, T + 1):
+    idx =1
+    for test_case in range(1, T+1):
         A = int(input[idx])
-        B = int(input[idx + 1])
-        M = int(input[idx + 2])
-        idx += 3
-        # Find the left and right indices using bisect
+        B = int(input[idx +1])
+        M = int(input[idx +2])
+        idx +=3
+        # Find left and right indices
         left = bisect.bisect_left(mountains, A)
         right = bisect.bisect_right(mountains, B)
-        count = 0
-        for num in mountains[left:right]:
-            if num % M == 0:
-                count += 1
-        print(f"Case #{case}: {count}")
+        sublist = mountains[left:right]
+        count =0
+        if M ==1:
+            count = len(sublist)
+        else:
+            for num in sublist:
+                if num % M ==0:
+                    count +=1
+        print(f"Case #{test_case}: {count}")
 
 if __name__ == "__main__":
     main()

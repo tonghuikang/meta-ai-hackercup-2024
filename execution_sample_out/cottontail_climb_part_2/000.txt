@@ -1,2 +1,17 @@
 An error happened during execution:
-Code execution timed out.
+Traceback (most recent call last):
+  File "/tmp/tmpg6jo62bm.py", line 50, in <module>
+    main()
+  File "/tmp/tmpg6jo62bm.py", line 32, in main
+    mountains = generate_mountain_numbers()
+  File "/tmp/tmpg6jo62bm.py", line 27, in generate_mountain_numbers
+    dfs("", 1, 0)
+  File "/tmp/tmpg6jo62bm.py", line 26, in dfs
+    dfs(prefix + str(d), d, depth + 1)
+  File "/tmp/tmpg6jo62bm.py", line 26, in dfs
+    dfs(prefix + str(d), d, depth + 1)
+  File "/tmp/tmpg6jo62bm.py", line 21, in dfs
+    dfs_decr("", peak, 0)
+  File "/tmp/tmpg6jo62bm.py", line 19, in dfs_decr
+    for d in range(1, current_digit + 1):
+TypeError: can only concatenate str (not "int") to str

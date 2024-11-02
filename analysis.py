@@ -138,6 +138,12 @@ def get_current_status(contest_folder, evaluation=False):
             return ""
 
     df_grouped['case_string'] = df_grouped['full_in'].apply(extract_max_case_string_from_input)
+    df_grouped['case_string_found'] = df_grouped.apply(
+        lambda row: bool(row["execution_full_out"]) and row["case_string"] in row["execution_full_out"], axis=1
+    )
+    df_grouped['sample_out_found'] = df_grouped.apply(
+        lambda row: bool(row["execution_sample_out"]) and row["sample_out"].strip() in row["execution_sample_out"], axis=1
+    )
 
     # Subset to aggregate grouping by
     df_subset_to_aggregate = df_grouped[
@@ -208,8 +214,9 @@ analysis_prompt = """
 You will choose the best solution among the presented solutions.
 
 The best solution is a solution that
-- has successfully execute on the full input
-- is most likely to be fully correct
+- is correct on the sample input
+- has successfully executed on the full input
+- is most likely fully correct on the full input
 
 
 This is the problem statement.
@@ -220,7 +227,7 @@ This is the sample input.
 
 {sample_in}
 
-This is an expected sample output.
+This is an expected output for the sample input.
 
 {sample_out}
 
@@ -232,14 +239,12 @@ These are the solutions, with their code and the execution outputs.
 
 {solutions_string}
 
-If the input size is small, carefully derive the set of correct solutions.
-
-Then, analyze each solution's algorithm and implementation, and its outputs for correctness.
-
-Summarize the findings.
-
-Then, select the best solution by printing their solution id between <index> and </index>
-e.g. The best solution is <index>004</index>.
+Reply in the following steps
+- For each solution
+    - Analyze whether does it a correct output for the sample input
+    - Analyze whether does it have an obviously wrong output for the full input
+- Compare and contrast the algorithms and identify wrong algorithms
+- Present the best solution in this format: The best solution is <index>004</index> (and the reasoning)
 """.strip()
 
 
@@ -268,23 +273,24 @@ client = OpenAI()
 
 def call_openai(prompt):
     completion = client.chat.completions.create(
-        model="o1-mini",
+        model="gpt-4o-2024-08-06",
         messages=[{"role": "user", "content": prompt}],
     )
     return completion.choices[0].message.content
 
 
-## Backup call
-# import anthropic
-# client = anthropic.Anthropic()
-# message = client.messages.create(
-#     model="claude-3-5-sonnet-20240620",
-#     max_tokens=1024,
-#     messages=[
-#         {"role": "user", "content": "Hello, Claude"}
-#     ]
-# )
-# print(message.content[0].text)
+def call_openai(prompt):
+    # Backup call
+    import anthropic
+    client = anthropic.Anthropic()
+    message = client.messages.create(
+        model="claude-3-5-sonnet-20241022",
+        max_tokens=4096,
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
+    )
+    return message.content[0].text
 
 
 import re
@@ -329,18 +335,25 @@ def select_solution(solutions_dict: dict[str, Any]):
         solution_id_to_hashed_id[solution_id] = hashed_id
         hashed_id_to_solution_id[hashed_id] = solution_id
 
+    solutions_dict["should_retain"] = [
+        True for _ in solutions_dict["solution_id"]
+    ]
+    if any(solutions_dict["sample_out_found"]):
+        solutions_dict["should_retain"] = solutions_dict["sample_out_found"]        
+
     solutions_string = "\n\n".join(
         solution_string.format(
             hashed_id = solution_id_to_hashed_id[solution_id],
             execution_response = truncate(execution_response, 10000),
             execution_sample_out = truncate(execution_sample_out, 2000),
             execution_full_out = truncate(execution_full_out, 2000),
-        ) for solution_id, execution_response, execution_sample_out, execution_full_out in zip(
+        ) for solution_id, execution_response, execution_sample_out, execution_full_out, should_retain in zip(
             solutions_dict["solution_id"],
             solutions_dict["execution_response"],
             solutions_dict["execution_sample_out"],
             solutions_dict["execution_full_out"],
-        )
+            solutions_dict["should_retain"],
+        ) if should_retain is True
     )
 
     with open('./hash_analyzing', 'a') as f:
@@ -359,6 +372,9 @@ def select_solution(solutions_dict: dict[str, Any]):
     openai_judgment = call_openai(judgment_instructions)
 
     selected_hashed_id = extract_index_id(openai_judgment)
+    if selected_hashed_id is None:
+        print(f"Did not select solution for {problem_code}")
+        return openai_judgment, None
     selected_solution_id = hashed_id_to_solution_id[selected_hashed_id]
 
     problem_code = solutions_dict["problem_code"]
