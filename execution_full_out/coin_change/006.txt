@@ -1,4 +1,0 @@
-An error happened during execution:
-  File "/tmp/tmptoatdk9y.py", line 41
-    D_ceiling = (100 + P -1) // P +1
-IndentationError: unexpected indent

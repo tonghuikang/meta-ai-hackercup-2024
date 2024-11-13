@@ -1,3 +1,0 @@
-Case #1: Lucky
-Case #2: Lucky
-Case #3: Wrong

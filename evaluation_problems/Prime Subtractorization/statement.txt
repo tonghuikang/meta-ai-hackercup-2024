@@ -1,4 +1,4 @@
-A prime number is an *$N$-subtractorization* if it can be expressed as the difference of two primes that are both at most $N$. For example, the complete set of *$5$-subtractorizations* is $\{2, 3\}$ because $5 - 3 = 2$ and $5 - 2 = 3$.
+A positive integer is an *$N$-subtractorization* if it is a prime number that can be expressed as the difference of two primes that are both at most $N$. For example, the complete set of *$5$-subtractorizations* is $\{2, 3\}$ because $5 - 3 = 2$ and $5 - 2 = 3$.
 
 For a given $N$, how many *$N$-subtractorizations* are there?
 

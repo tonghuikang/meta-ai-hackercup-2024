@@ -9,7 +9,7 @@ On average, how many days will it take you to reach a weight of $G$ units? The a
 # Constraints
 \(1 \leq T \leq 90\)
 \(1 \leq G \lt W  \leq 10^{18}\)
-\(1 \leq L  \leq 10^{18}\)
+\(0 \leq L  \leq 10^{18}\)
 
 # Input Format
 Input begins with an integer \(T\), the number of test cases. Each case is a single line with the integers $W$, $G$, and $L$.

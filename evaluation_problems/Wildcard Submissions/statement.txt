@@ -25,6 +25,6 @@ For the \(i\)th test case, print "`Case #i:` " followed by the number of nodes i
 # Sample Explanation
 In the first case, we insert the string `META` into the trie, creating $5$ nodes: $[$ `''`, `M`, `ME`, `MET`, `META` $]$. Inserting `MATE` would create the $5$ nodes $[$ `''`, `M`, `MA`, `MAT`, `MATE` $]$, but those first $2$ nodes already exist, so $3$ new nodes are created. In the end we have $8$ nodes.
 
-In the second case, we insert the strings $[$ `AB`, `BB`, `CB`, ... `ZB` $]$ into the trie, which creates the $57$ nodes $[$ `''`, `A`, `AB`, `B`, `BB`, ...,  `Z`, `ZB` $]$. When we add the string `AC`, that creates one new node, `AC`.
+In the second case, we insert the strings $[$ `AB`, `BB`, `CB`, ... `ZB` $]$ into the trie, which creates the $53$ nodes $[$ `''`, `A`, `AB`, `B`, `BB`, ...,  `Z`, `ZB` $]$. When we add the string `AC`, that creates one new node, `AC`.
 
-In the third case, we insert all combinations of $2$ letters, giving us $1$ node for the empty string, $26$ nodes for the single letters, and $26*26=676$ nodes for the pairs of letters, for a total of $703$ nodes.
+In the third case, we insert all combinations of $2$ letters, giving us $1$ node for the empty string, $26$ nodes for the single letters, and $26 \times 26=676$ nodes for the pairs of letters, for a total of $703$ nodes.
