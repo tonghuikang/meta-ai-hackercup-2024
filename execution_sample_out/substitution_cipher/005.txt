@@ -1,0 +1,10 @@
+An error happened during execution:
+Exception in thread Thread-1:
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/local/lib/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/tmp/tmpme70b54g.py", line 80, in main
+    num = int(U[i:i+2])
+TypeError: int() argument must be a string, a bytes-like object or a number, not 'list'

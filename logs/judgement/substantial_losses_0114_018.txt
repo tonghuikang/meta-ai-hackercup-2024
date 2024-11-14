@@ -1,0 +1,55 @@
+Let me analyze each solution:
+
+Solution 007:
+- Correct output for sample input
+- No obviously wrong output for full input
+- Algorithm uses (W-G)*(2L+1) with proper modulo arithmetic
+
+Solution 005:
+- Correct output for sample input
+- No obviously wrong output for full input
+- Algorithm uses (W-G)*(2L+1) with proper modulo arithmetic
+
+Solution 006:
+- Correct output for sample input
+- No obviously wrong output for full input
+- Algorithm uses (W-G)*(2L+1) with proper modulo arithmetic
+
+Solution 003:
+- Correct output for sample input
+- No obviously wrong output for full input
+- Algorithm uses (W-G)*(2L+1) with proper modulo arithmetic
+
+Solution 000:
+- Correct output for sample input
+- No obviously wrong output for full input
+- Algorithm uses (W-G)*(2L+1) with proper modulo arithmetic
+
+Solution 001:
+- Correct output for sample input
+- No obviously wrong output for full input
+- Algorithm uses (W-G)*(2L+1) with proper modulo arithmetic
+
+Solution 009:
+- Correct output for sample input
+- No obviously wrong output for full input
+- Algorithm uses (W-G)*(2L+1) with proper modulo arithmetic
+
+Solution 004:
+- Correct output for sample input
+- No obviously wrong output for full input
+- Algorithm uses (W-G)*(2L+1) with proper modulo arithmetic
+
+Comparing algorithms:
+- All solutions implement essentially the same algorithm: (W-G)*(2L+1) mod 998244353
+- They handle the L=0 case correctly by just using W-G
+- All solutions properly handle modulo arithmetic to avoid overflow
+- No obviously wrong algorithms detected
+
+The best solution is <index>004</index> because:
+1. It has the clearest and most efficient implementation using sys.stdin.read() for fast input
+2. It properly handles both the L=0 and L>0 cases explicitly
+3. It uses clean modular arithmetic to avoid overflow
+4. The code is well-structured with separate readints() function and main()
+5. It's one of the most concise yet readable implementations, making it easier to maintain and understand
+6. It properly processes all inputs in a batch manner rather than one at a time, making it more efficient for large test cases

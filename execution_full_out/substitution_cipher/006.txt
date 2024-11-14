@@ -1,0 +1,5 @@
+An error happened during execution:
+  File "/tmp/tmpmld_xlua.py", line 84
+    num = int(d + E[i+1})
+                       ^
+SyntaxError: closing parenthesis '}' does not match opening parenthesis '['
