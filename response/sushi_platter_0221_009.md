@@ -1,3 +1,33 @@
+**Key Findings:**
+
+1. **Problem Breakdown:**
+   - We need to count the number of valid permutations of \( N + M \) sushi pieces (nigiri and sashimi) such that the sum of absolute differences between consecutive pieces is at most \( L \).
+   - Each nigiri has a tastiness value \( A_i \) (1 ≤ \( A_i \) ≤ 100), and each sashimi has a tastiness value \( B_j \) (101 ≤ \( B_j \) ≤ \( 10^9 \)).
+   - Since \( M \) (the number of sashimi) is small (≤ 5), we can exploit this to optimize our solution.
+
+2. **Approach:**
+   - **Dynamic Programming (DP):** Utilize DP to keep track of the number of valid permutations, considering the placement of sashimi and nigiri.
+   - **State Representation:**
+     - **Mask:** A bitmask representing which sashimi have been placed so far.
+     - **Last Piece:** The last sushi piece placed (to calculate the difference with the next piece).
+     - **Sum:** The current sum of differences. However, since \( L \) can be up to \( 10^9 \), we need to manage this efficiently, possibly by limiting the DP state to relevant sums.
+   - **Optimization:**
+     - Given the small \( M \), we can iterate over all possible orders of sashimi and place them in the permutation, interleaving the nigiri accordingly.
+     - Precompute the absolute differences between all pairs of sushi pieces to speed up the DP transitions.
+     - Use memoization to avoid redundant calculations.
+
+3. **Implementation Details:**
+   - **Permutations of Sashimi:** Since \( M \) is small, iterate through all \( M! \) possible orders of sashimi.
+   - **Interleaving Nigiri:** For each sashimi ordering, distribute the \( N \) nigiri among the \( M + 1 \) possible gaps (before, between, and after sashimi).
+   - **DP Transitions:** Carefully update the DP state by considering the placement of each nigiri and sashimi, ensuring that the sum of differences does not exceed \( L \).
+
+4. **Complexity Considerations:**
+   - The approach must be efficient enough to handle up to \( T = 65 \) test cases, each with up to \( N + M = 55 \) pieces.
+   - By leveraging the small \( M \) and optimizing the DP transitions, the solution remains feasible within the given constraints.
+
+---
+
+```python
 import sys
 import threading
 from math import factorial
@@ -87,3 +117,4 @@ def main():
 
 if __name__ == "__main__":
     threading.Thread(target=main,).start()
+```

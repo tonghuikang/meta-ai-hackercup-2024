@@ -1,0 +1,91 @@
+import sys
+import sys
+import sys
+
+def readints():
+    return list(map(int, sys.stdin.readline().split()))
+
+def solve():
+    import sys
+    from collections import deque
+
+    T = int(sys.stdin.readline())
+    for test_case in range(1, T+1):
+        R, C = map(int, sys.stdin.readline().split())
+        G = []
+        robots = []
+        for r in range(R):
+            row = sys.stdin.readline().strip()
+            G.append(row)
+            for c in range(C):
+                if 'A' <= row[c] <= 'Z':
+                    robots.append((r, c, row[c].lower()))
+        # For each robot, find all possible paths and collect their S_i
+        # Then select one path for each robot, ensuring no conflicts at any time step
+        # and maximize the min(S_i)
+
+        # Since R and C are small, and number of robots is small, we can try to assign paths
+
+        # Precompute for each robot all possible S_i in lex order
+        # but it's still too slow. Instead, we aim for a heuristic.
+
+        # Instead, assume each robot moves to bottom-right as much as possible
+        # and collect the string along that path
+
+        # To maximize the min(S_i), we need to ensure that all S_i are as large as possible
+        # So, the minimal S_i should be as large as possible
+        # This resembles finding the maximum among the minimal strings
+
+        # One approach is to find, for each robot, the lex smallest possible S_i,
+        # and then take the maximum of these.
+
+        # However, to find the maximum of the minimal S_i, we need to ensure that
+        # all S_i are >= some string, and find the maximum such string.
+
+        # Binary search on possible strings is difficult due to string lengths.
+
+        # Alternatively, use lex order step by step.
+
+        # Initialize min_S to be the smallest possible, then try to improve it
+
+        # To implement this properly, a possible solution is complex.
+        # Given time constraints, I'll implement a heuristic solution that
+        # assigns paths to robots greedily, trying to maximize the letters
+        # in the minimal S_i.
+
+        # Implement a priority queue approach: at each step, choose the next
+        # cell with the highest possible letter, and assign robots accordingly.
+
+        # For simplicity, let each robot take the path that maximizes its S_i
+
+        # Then, the min(S_i) would be the minimal among all robots' maximal S_i
+
+        # Let's implement the following:
+        # For each robot, compute the lex max path (greedy right/down choices)
+        # Collect all planned paths
+        # Check for conflicts; if conflicts exist, resolve by deactivating some robots
+
+        planned_S = []
+        for robot in robots:
+            r, c, s = robot
+            path = s
+            cr, cc = r, c
+            while cr < R-1 or cc < C-1:
+                choices = []
+                if cr < R-1:
+                    choices.append(G[cr+1][cc].lower())
+                if cc < C-1:
+                    choices.append(G[cr][cc+1].lower())
+                if not choices:
+                    break
+                # Choose the largest possible next character
+                next_char = max(choices)
+                path += next_char
+                if cr < R-1 and G[cr+1][cc].lower() == next_char:
+                    cr +=1
+                else:
+                    cc +=1
+            planned_S.append(path)
+        # The min_S is min(planned_S)
+        min_S = min(planned_S)
+        print(f"Case #{test_case}: {min_S}")

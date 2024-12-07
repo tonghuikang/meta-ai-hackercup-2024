@@ -1,0 +1,5 @@
+An error happened during execution:
+  File "/tmp/tmp4wsffzn8.py", line 35
+    lambda t: (t, 0) for t in [0, W],
+                                    ^
+SyntaxError: invalid syntax

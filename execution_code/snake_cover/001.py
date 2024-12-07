@@ -1,0 +1,88 @@
+import sys
+import threading
+
+def main():
+    sys.setrecursionlimit(1 << 25)
+    T = int(sys.stdin.readline())
+    for case_num in range(1, T +1):
+        N, M = map(int, sys.stdin.readline().split())
+        dirs = ['N', 'E', 'S', 'W']
+        dir_idx = 1  # Start facing East
+        dx = [0, 1, 0, -1]
+        dy = [1, 0, -1, 0]
+        x_h, y_h = 0, 0  # Head's starting position
+        head_path = []  # Each element: (dir_idx, length, x_start, y_start)
+        total_length = 0
+
+        # Add initial segment
+        head_path.append((dir_idx, 0, x_h, y_h))
+
+        total_moves = int(M)
+        moves = []
+        for _ in range(total_moves):
+            line = sys.stdin.readline().split()
+            D_i = line[0]
+            X_i = int(line[1])
+            moves.append((D_i, X_i))
+
+        ans = 0
+
+        for move_idx, (D_i, X_i) in enumerate(moves):
+            # Update direction
+            if D_i == 'L':
+                dir_idx = (dir_idx - 1) % 4
+            elif D_i == 'R':
+                dir_idx = (dir_idx +1) %4
+            # Else, 'S', no change
+
+            # Add new segment
+            x_start, y_start = x_h, y_h
+            head_path.append((dir_idx, X_i, x_start, y_start))
+            total_length += X_i
+
+            # Update head position
+            x_h += dx[dir_idx]*X_i
+            y_h += dy[dir_idx]*X_i
+
+            # Function to compute area at a given total_length (time)
+            def compute_area_at_length(length):
+                remaining = min(N, length)
+                min_x = max_x = None
+                min_y = max_y = None
+                rem = remaining
+                # Walk back over head_path
+                for seg_dir_idx, seg_len, seg_x_start, seg_y_start in reversed(head_path):
+                    if rem <=0:
+                        break
+                    take_len = min(seg_len, rem)
+                    x_end = seg_x_start + dx[seg_dir_idx]*take_len
+                    y_end = seg_y_start + dy[seg_dir_idx]*take_len
+                    # Segment from (x_end, y_end) to (seg_x_start, seg_y_start)
+                    seg_min_x = min(seg_x_start, x_end)
+                    seg_max_x = max(seg_x_start, x_end)
+                    seg_min_y = min(seg_y_start, y_end)
+                    seg_max_y = max(seg_y_start, y_end)
+                    if min_x is None:
+                        min_x = seg_min_x
+                        max_x = seg_max_x
+                        min_y = seg_min_y
+                        max_y = seg_max_y
+                    else:
+                        min_x = min(min_x, seg_min_x)
+                        max_x = max(max_x, seg_max_x)
+                        min_y = min(min_y, seg_min_y)
+                        max_y = max(max_y, seg_max_y)
+                    rem -= seg_len
+                area = (max_x - min_x +1)*(max_y - min_y +1)
+                return area
+
+            # Compute area at start of move
+            area_start = compute_area_at_length(total_length - X_i)
+            # Compute area at end of move
+            area_end = compute_area_at_length(total_length)
+            f_i = min(area_start, area_end)
+            ans = (ans + f_i)%1000000007
+
+        print(f'Case #{case_num}: {ans}')
+
+threading.Thread(target=main).start()

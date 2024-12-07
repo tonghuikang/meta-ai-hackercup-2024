@@ -1,0 +1,122 @@
+import math
+import sys
+
+def readints():
+    return list(map(int, sys.stdin.readline().split()))
+
+def rotate(point, angle):
+    x, y = point
+    cos_theta = math.cos(angle)
+    sin_theta = math.sin(angle)
+    return (x * cos_theta + y * sin_theta, -x * sin_theta + y * cos_theta)
+
+def translate(polygon, dx, dy):
+    return [(x + dx, y + dy) for (x, y) in polygon]
+
+def point_in_polygon(x, y, polygon):
+    n = len(polygon)
+    inside = False
+    for i in range(n):
+        xi, yi = polygon[i]
+        xj, yj = polygon[(i + 1) % n]
+        if ((yi > y) != (yj > y)):
+            intersect = (xj - xi) * (y - yi) / (yj - yi) + xi
+            if x < intersect:
+                inside = not inside
+    return inside
+
+def polygon_contains_point(polygon, x, y):
+    return point_in_polygon(x, y, polygon)
+
+def polygon_contains_any_boundary(polygon, W, D):
+    # Check some boundary points
+    # Since no three points are colinear, check corners
+    corners = [
+        (0,0), (W,0), (W,D), (0,D)
+    ]
+    for corner in corners:
+        if polygon_contains_point(polygon, corner[0], corner[1]):
+            return True
+    # Additionally, check midpoints of edges
+    midpoints = [
+        (W/2,0), (W, D/2), (W/2, D), (0, D/2)
+    ]
+    for mp in midpoints:
+        if polygon_contains_point(polygon, mp[0], mp[1]):
+            return True
+    return False
+
+def polygon_has_interior_inside_cup(polygon, W, D):
+    # Sample some interior points
+    sample_points = [
+        (W/2, D/2),
+        (W/4, D/4), (3*W/4, D/4),
+        (W/4, 3*D/4), (3*W/4, 3*D/4)
+    ]
+    for x, y in sample_points:
+        if 0 < x < W and 0 < y < D:
+            if polygon_contains_point(polygon, x, y):
+                return True
+    return False
+
+def can_fit(polygon, W, D):
+    N = len(polygon)
+    for i in range(N):
+        v = polygon[i]
+        angle = math.atan2(v[1], v[0])
+        rotated = [rotate(p, -angle) for p in polygon]
+        # Now, v is on x-axis
+        # Find x of v after rotation
+        rotated_v = rotated[i]
+        x_v = rotated_v[0]
+        y_v = rotated_v[1]
+        if abs(y_v) > 1e-6:
+            continue  # Not aligned properly
+        x_coords = [p[0] for p in rotated]
+        y_coords = [p[1] for p in rotated]
+        x_min = min(x_coords)
+        x_max = max(x_coords)
+        y_min = min(y_coords)
+        y_max = max(y_coords)
+        if y_min < -1e-6:
+            continue  # Some point below x-axis
+        if y_max > D + 1e-6:
+            continue  # Exceeds depth
+        # Determine shift_x to place v within [0, W]
+        # v is at (x_v, 0)
+        lower_shift = max(-x_min, -x_v)
+        upper_shift = min(W - x_max, W - x_v)
+        if lower_shift > upper_shift:
+            continue  # No valid shift
+        # Try to place v at x_v + shift within [0, W]
+        # Let's try placing v at shift_x = max(0, min(x_v, W))
+        possible_shifts = [0, W - x_max, -x_min]
+        for shift_x in possible_shifts:
+            if shift_x < lower_shift -1e-6 or shift_x > upper_shift +1e-6:
+                continue
+            translated = translate(rotated, shift_x, 0)
+            # Check if some interior point is inside the cup
+            if not polygon_has_interior_inside_cup(translated, W, D):
+                continue
+            # Check that no boundary point of cup is inside polygon
+            if polygon_contains_any_boundary(translated, W, D):
+                continue
+            # All conditions satisfied
+            return True
+    return False
+
+def main():
+    T = int(sys.stdin.readline())
+    for test_case in range(1, T+1):
+        N, W, D = readints()
+        polygon = []
+        for _ in range(N):
+            x, y = readints()
+            polygon.append( (x, y) )
+        if can_fit(polygon, W, D):
+            print(f"Case #{test_case}: Yes")
+        else:
+            print(f"Case #{test_case}: No")
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,33 @@
+Let me analyze each solution:
+
+Solution 000:
+- Sample input: Wrong output for Case #1 (14 instead of 15) and Case #2 (40 instead of 41)
+- Full input: Has output for all test cases, but given it's wrong on sample cases, it's likely wrong on full input too
+
+Solution 001:
+- Sample input: Wrong output for Case #1 (9 instead of 15) and Case #2 (35 instead of 41)
+- Full input: Many test cases output 0, which is suspicious given all triangles must have some lattice points. This indicates the solution is incomplete/incorrect.
+
+Comparing the algorithms:
+1. Solution 000:
+- Uses Pick's theorem for fully inside triangles
+- Uses scanline approach for partially intersecting triangles
+- Handles both cases but has implementation errors in counting
+
+2. Solution 001:
+- Uses Pick's theorem for fully inside triangles
+- Explicitly skips partially intersecting triangles (outputs 0 contribution)
+- Incomplete solution as stated in its own comments
+
+Both solutions have flaws:
+- Solution 000 has counting errors even though it implements both cases
+- Solution 001 is incomplete and doesn't handle partial intersections at all
+
+Neither solution is fully correct.
+
+The best solution is: Neither solution is acceptable since both produce incorrect results. We would need a solution that:
+1. Correctly handles both fully inside and partially intersecting triangles
+2. Produces the correct output (15, 41) for the sample cases
+3. Consistently handles all cases in the full input without suspicious patterns like many zeros
+
+Given the available solutions, I cannot recommend either one as the best solution since both are demonstrably incorrect.
