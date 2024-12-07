@@ -1,0 +1,86 @@
+import sys
+import sys
+import sys
+def main():
+    import sys
+    sys.setrecursionlimit(10000)
+    T = int(sys.stdin.readline())
+    for tc in range(1, T+1):
+        R, C = map(int, sys.stdin.readline().split())
+        G = []
+        robots = []
+        for r in range(R):
+            line = sys.stdin.readline().strip()
+            G.append(line)
+            for c in range(C):
+                if 'A' <= line[c] <= 'Z':
+                    robots.append((r, c, line[c].lower()))
+        # Since R and C are small, and number of robots limited, we can proceed
+        # For each robot, find all possible paths from (r,c) to (R-1,C-1)
+        # Each path corresponds to a string S_i
+        # We need to choose a path for each robot such that at each time step,
+        # no two robots are on the same cell
+        # Then find the min(S_i), and maximize it lex order
+        # Since it's complex, we'll approximate by choosing for each robot the lex smallest path
+        # but since we need the max of min(S_i), we need to maximize the smallest S_i
+        # One approach is to maximize the minimal S_i over all robots
+        # We can try to find the smallest S_i, and maximize it
+        # To simplify, assume that each robot selects the lex smallest path
+        # Then take the max of these
+        # But to match the sample, it's not straightforward
+        # Alternative idea:
+        # Find the common prefix that all S_i can have, and extend it as much as possible
+        # Implement a BFS-like approach to build the prefix step by step
+        # At each step, choose the maximum possible next character that all robots can achieve
+        # given their possible moves
+        # Implemented as follows:
+        prefix = ""
+        active = robots.copy()
+        while True:
+            candidates = {}
+            for r, c, s in active:
+                moves = []
+                if r < R-1:
+                    moves.append((r+1, c))
+                if c < C-1:
+                    moves.append((r, c+1))
+                moves.append((r, c))  # Option to deactivate
+                chars = set()
+                next_positions = []
+                for nr, nc in moves:
+                    if nr == r and nc == c:
+                        # Deactivate, no more chars
+                        chars.add(None)
+                    else:
+                        chars.add(G[nr][nc].lower())
+                candidates[r, c] = chars
+            # Find the maximum character that is present in all robots' possible next chars
+            possible = None
+            for c in reversed('abcdefghijklmnopqrstuvwxyz'):
+                if all(c in candidates[rc] for rc in candidates):
+                    possible = c
+                    break
+            if possible is None:
+                break
+            prefix += possible
+            # Now, update active robots: move those that can take the 'possible' char
+            new_active = []
+            for r, c, s in active:
+                # If robot can move to a cell with char 'possible', move it
+                moved = False
+                if c < C-1 and G[r][c+1].lower() == possible:
+                    new_active.append((r, c+1, s + possible))
+                    moved = True
+                if r < R-1 and G[r+1][c].lower() == possible:
+                    new_active.append((r+1, c, s + possible))
+                    moved = True
+                if not moved:
+                    # Deactivate
+                    pass
+            if not new_active:
+                break
+            active = new_active
+        print(f"Case #{tc}: {prefix}")
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,9 @@
+An error happened during execution:
+Traceback (most recent call last):
+  File "/tmp/tmp8m30ub_8.py", line 166, in <module>
+    main()
+  File "/tmp/tmp8m30ub_8.py", line 162, in main
+    result = can_fit(polygon, W, D)
+  File "/tmp/tmp8m30ub_8.py", line 126, in can_fit
+    W_edge = translated_j[0] - translated_i[0]
+NameError: name 'translated_i' is not defined

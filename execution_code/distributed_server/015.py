@@ -1,0 +1,103 @@
+import sys
+import sys
+from collections import defaultdict
+import sys
+import sys
+
+def readints():
+    return list(map(int, sys.stdin.readline().split()))
+
+def main():
+    import sys
+    sys.setrecursionlimit(1000000)
+    T = int(sys.stdin.readline())
+    for test_case in range(1, T+1):
+        R, C = map(int, sys.stdin.readline().split())
+        grid = []
+        for _ in range(R):
+            grid.append(sys.stdin.readline().strip())
+        # Identify robots
+        robots = []
+        for r in range(R):
+            for c in range(C):
+                if grid[r][c].isupper():
+                    robots.append( (r, c) )
+        K = len(robots)
+        # Initialize current positions
+        robot_positions = list(robots)
+        # Initialize L
+        L = ""
+        while True:
+            # Try to find the maximum possible c
+            found = False
+            for cc in range(ord('z'), ord('a')-1, -1):
+                c = chr(cc)
+                # Collect cells with lower(G[r][c']) == c
+                candidate_cells = []
+                for r in range(R):
+                    for col in range(C):
+                        if grid[r][col].lower() == c:
+                            candidate_cells.append( (r, col) )
+                if len(candidate_cells) < K:
+                    continue
+                # For each robot, find possible cells to move to with c
+                adj = [[] for _ in range(K)]
+                for i in range(K):
+                    r, col = robot_positions[i]
+                    moves = []
+                    if r+1 < R and grid[r+1][col].lower() == c:
+                        moves.append( (r+1, col) )
+                    if col+1 < C and grid[r][col+1].lower() == c:
+                        moves.append( (r, col+1) )
+                    adj[i] = [j for j, cell in enumerate(candidate_cells) if cell in moves]
+                # Now, try to find a matching where every robot can be assigned to one cell
+                # with c
+                # Implement bipartite matching
+                match_to = [-1] * len(candidate_cells)
+                def bpm(u, seen):
+                    for v in adj[u]:
+                        if not seen[v]:
+                            seen[v] = True
+                            if match_to[v] == -1 or bpm(match_to[v], seen):
+                                match_to[v] = u
+                                return True
+                    return False
+                result = 0
+                for u in range(K):
+                    seen = [False] * len(candidate_cells)
+                    if bpm(u, seen):
+                        result +=1
+                if result == K:
+                    # Matching found, assign c
+                    # Now, find the actual assignments
+                    match_to = [-1] * len(candidate_cells)
+                    assignments = [-1]*K
+                    def bpm_assign(u, seen):
+                        for v in adj[u]:
+                            if not seen[v]:
+                                seen[v] = True
+                                if match_to[v] == -1 or bpm_assign(match_to[v], seen):
+                                    match_to[v] = u
+                                    assignments[u] = v
+                                    return True
+                        return False
+                    assignments = [-1]*K
+                    for u in range(K):
+                        seen = [False] * len(candidate_cells)
+                        bpm_assign(u, seen)
+                    # Update robot positions
+                    new_positions = []
+                    for i in range(K):
+                        v = assignments[i]
+                        new_positions.append( candidate_cells[v] )
+                    robot_positions = new_positions
+                    # Append c to L
+                    L += c
+                    found = True
+                    break
+            if not found:
+                break
+        print(f"Case #{test_case}: {L}")
+
+if __name__ == "__main__":
+    main()

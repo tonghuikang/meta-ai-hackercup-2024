@@ -1,0 +1,209 @@
+import sys
+import math
+from math import gcd
+from sys import stdin
+import threading
+
+MOD = 10**9 + 7
+
+def main():
+    import sys
+
+    sys.setrecursionlimit(1 << 25)
+    T = int(sys.stdin.readline())
+    for test_case in range(1, T + 1):
+        N, R = map(int, sys.stdin.readline().split())
+        R_sq = R * R
+        total = 0
+        for _ in range(N):
+            Ax, Ay, Bx, By, Cx, Cy = map(int, sys.stdin.readline().split())
+
+            # Check if all vertices are inside or on the circle
+            inside_A = Ax*Ax + Ay*Ay <= R_sq
+            inside_B = Bx*Bx + By*By <= R_sq
+            inside_C = Cx*Cx + Cy*Cy <= R_sq
+
+            if inside_A and inside_B and inside_C:
+                # Fully inside, use Pick's theorem
+                # Calculate area using shoelace formula
+                area = abs((Ax*(By - Cy) + Bx*(Cy - Ay) + Cx*(Ay - By)) ) / 2
+
+                # Calculate boundary points
+                def boundary_points(x1, y1, x2, y2):
+                    dx = abs(x2 - x1)
+                    dy = abs(y2 - y1)
+                    if dx == 0 and dy == 0:
+                        return 1
+                    return gcd(dx, dy) + 1
+
+                B1 = boundary_points(Ax, Ay, Bx, By)
+                B2 = boundary_points(Bx, By, Cx, Cy)
+                B3 = boundary_points(Cx, Cy, Ax, Ay)
+                B = B1 + B2 + B3 - 3  # subtract 3 because each vertex is counted twice
+
+                # Number of interior points
+                I = area - B / 2 + 1
+
+                # Total lattice points
+                lattice_points = int(round(I + B / 1))
+                total = (total + lattice_points) % MOD
+            else:
+                # Partially overlapping, need to count lattice points inside both the triangle and the circle
+                # First, find bounding box
+                min_x = math.ceil(min(Ax, Bx, Cx))
+                max_x = math.floor(max(Ax, Bx, Cx))
+                min_y = math.ceil(min(Ay, By, Cy))
+                max_y = math.floor(max(Ay, By, Cy))
+
+                # To ensure, use floor and ceil correctly
+                min_x = int(math.floor(min(Ax, Bx, Cx)))
+                max_x = int(math.ceil(max(Ax, Bx, Cx)))
+                min_y = int(math.floor(min(Ay, By, Cy)))
+                max_y = int(math.ceil(max(Ay, By, Cy)))
+
+                # Function to determine if point is inside triangle using barycentric coordinates
+                # Precompute values for barycentric coordinates
+                v0x = Cx - Ax
+                v0y = Cy - Ay
+                v1x = Bx - Ax
+                v1y = By - Ay
+                denom = v0x * v1y - v1x * v0y
+                if denom == 0:
+                    # Degenerate triangle, should not happen
+                    count = 0
+                else:
+                    count = 0
+                    for x in range(min_x, max_x + 1):
+                        # For a given x, find y range for the triangle
+                        # We can iterate y from min_y to max_y and check
+                        # Alternatively, find intersection of vertical line with triangle edges
+                        # and determine the y range
+                        # We'll use a simple point-in-triangle test
+                        # To speed up, precompute everything
+                        # Use barycentric coordinates
+                        # Precompute denominator
+                        inv_denom = 1 / denom
+                        for y in range(min_y, max_y + 1):
+                            # Compute vectors
+                            v2x = x - Ax
+                            v2y = y - Ay
+                            # Compute barycentric coordinates
+                            a = (v0x * v2y - v0y * v2x) * inv_denom
+                            b = (v1y * v2x - v1x * v2y) * inv_denom
+                            c = 1 - a - b
+                            # Check if point is inside the triangle
+                            if a >= -1e-9 and b >= -1e-9 and c >= -1e-9:
+                                # Check if inside circle
+                                if x*x + y*y <= R_sq:
+                                    count +=1
+                    total = (total + count) % MOD
+        print(f"Case #{test_case}: {total}")
+
+# A faster point-in-triangle and scanline approach
+def faster_main():
+    import sys
+
+    MOD = 10**9 + 7
+    input = sys.stdin.read().split()
+    ptr = 0
+    T = int(input[ptr]); ptr +=1
+    for test_case in range(1, T +1):
+        N, R = int(input[ptr]), int(input[ptr+1]); ptr +=2
+        R_sq = R * R
+        total = 0
+        for _ in range(N):
+            Ax = int(input[ptr]); Ay = int(input[ptr+1])
+            Bx = int(input[ptr+2]); By = int(input[ptr+3])
+            Cx = int(input[ptr+4]); Cy = int(input[ptr+5]); ptr +=6
+
+            # Check if all vertices are inside or on the circle
+            inside_A = Ax*Ax + Ay*Ay <= R_sq
+            inside_B = Bx*Bx + By*By <= R_sq
+            inside_C = Cx*Cx + Cy*Cy <= R_sq
+
+            if inside_A and inside_B and inside_C:
+                # Fully inside, use Pick's theorem
+                # Calculate area using shoelace formula
+                area2 = abs(Ax*(By - Cy) + Bx*(Cy - Ay) + Cx*(Ay - By))
+                area = area2 / 2
+
+                # Calculate boundary points
+                def boundary_points(x1, y1, x2, y2):
+                    dx = abs(x2 - x1)
+                    dy = abs(y2 - y1)
+                    if dx ==0 and dy ==0:
+                        return 1
+                    return gcd(dx, dy) +1
+
+                B1 = boundary_points(Ax, Ay, Bx, By)
+                B2 = boundary_points(Bx, By, Cx, Cy)
+                B3 = boundary_points(Cx, Cy, Ax, Ay)
+                B = B1 + B2 + B3 -3
+
+                # Number of interior points
+                I = area - B /2 +1
+
+                # Total lattice points
+                lattice_points = int(round(I + B /1))
+                total = (total + lattice_points) % MOD
+            else:
+                # Partially overlapping, use scanline
+                min_x = min(Ax, Bx, Cx)
+                max_x = max(Ax, Bx, Cx)
+                min_y = min(Ay, By, Cy)
+                max_y = max(Ay, By, Cy)
+
+                min_x = int(math.floor(min_x))
+                max_x = int(math.ceil(max_x))
+                min_y = int(math.floor(min_y))
+                max_y = int(math.ceil(max_y))
+
+                # Precompute edges
+                vertices = [(Ax, Ay), (Bx, By), (Cx, Cy)]
+                edges = []
+                for i in range(3):
+                    x1, y1 = vertices[i]
+                    x2, y2 = vertices[(i+1)%3]
+                    if x1 == x2:
+                        slope = None
+                    else:
+                        slope = (y2 - y1) / (x2 - x1)
+                    edges.append((x1, y1, x2, y2, slope))
+                count =0
+                for x in range(min_x, max_x+1):
+                    # Find intersections with edges
+                    y_coords = []
+                    for edge in edges:
+                        x1, y1, x2, y2, slope = edge
+                        if x1 == x2:
+                            if x == x1:
+                                y_coords.extend([y1, y2])
+                        else:
+                            if (x1 <= x <= x2) or (x2 <= x <= x1):
+                                # Compute y
+                                y = y1 + slope * (x - x1)
+                                y_coords.append(y)
+                    y_coords = sorted(y_coords)
+                    # Pair them
+                    for i in range(0, len(y_coords), 2):
+                        if i+1 >= len(y_coords):
+                            break
+                        y_start = math.ceil(y_coords[i])
+                        y_end = math.floor(y_coords[i+1])
+                        if y_start > y_end:
+                            continue
+                        # Now, intersect with circle's y range at this x
+                        if x*x > R_sq:
+                            continue
+                        y_limit = math.floor(math.sqrt(R_sq - x*x))
+                        y_min_circle = -y_limit
+                        y_max_circle = y_limit
+                        y_final_start = max(y_start, y_min_circle)
+                        y_final_end = min(y_end, y_max_circle)
+                        if y_final_start > y_final_end:
+                            continue
+                        count += y_final_end - y_final_start +1
+                total = (total + count) % MOD
+        print(f"Case #{test_case}: {total}")
+
+threading.Thread(target=faster_main).start()
