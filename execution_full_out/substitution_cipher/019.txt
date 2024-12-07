@@ -1,7 +1,0 @@
-An error happened during execution:
-Traceback (most recent call last):
-  File "/tmp/tmpemwhq01y.py", line 265, in <module>
-    main()
-  File "/tmp/tmpemwhq01y.py", line 67, in main
-    num = int(d1 + d2)
-ValueError: invalid literal for int() with base 10: '?2'

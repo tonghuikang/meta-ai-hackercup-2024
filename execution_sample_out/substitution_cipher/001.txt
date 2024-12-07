@@ -1,7 +1,0 @@
-Case #1: 122 91
-Case #2: 135201 2
-Case #3: 235 10
-Case #4: 120 1
-Case #5: 1122 5
-An error happened during execution:
-Code execution timed out.
