@@ -1,0 +1,189 @@
+import sys
+import sys
+import sys
+from collections import deque
+
+def readints():
+    return list(map(int, sys.stdin.readline().split()))
+
+def lower(c):
+    return c.lower()
+
+def hopcroft_karp(graph, N, M):
+    pair_U = [-1] * N
+    pair_V = [-1] * M
+    dist = [0] * N
+
+    def bfs():
+        queue = deque()
+        for u in range(N):
+            if pair_U[u] == -1:
+                dist[u] = 0
+                queue.append(u)
+            else:
+                dist[u] = float('inf')
+        dist_null = float('inf')
+        while queue:
+            u = queue.popleft()
+            if dist[u] < dist_null:
+                for v in graph[u]:
+                    if pair_V[v] == -1:
+                        if dist_null == float('inf'):
+                            dist_null = dist[u] + 1
+                    elif dist[pair_V[v]] == float('inf'):
+                        dist[pair_V[v]] = dist[u] + 1
+                        queue.append(pair_V[v])
+        return dist_null != float('inf')
+
+    def dfs(u):
+        for v in graph[u]:
+            if pair_V[v] == -1 or (dist[pair_V[v]] == dist[u] + 1 and dfs(pair_V[v])):
+                pair_U[u] = v
+                pair_V[v] = u
+                return True
+        dist[u] = float('inf')
+        return False
+
+    matching = 0
+    while bfs():
+        for u in range(N):
+            if pair_U[u] == -1:
+                if dfs(u):
+                    matching +=1
+    return matching
+
+def solve():
+    import sys
+    T = int(sys.stdin.readline())
+    for test_case in range(1, T+1):
+        R, C = map(int, sys.stdin.readline().split())
+        grid = []
+        for _ in range(R):
+            grid.append(sys.stdin.readline().strip())
+        # Collect robot starting positions
+        robots = []
+        for r in range(R):
+            for c in range(C):
+                if 'A' <= grid[r][c] <= 'Z':
+                    robots.append( (r, c) )
+        S = ""
+        # Current positions of robots
+        current_positions = robots.copy()
+        while True:
+            possible = False
+            chosen_c = ''
+            chosen_matching = None
+            for ci in range(25, -1, -1):
+                c_char = chr(ord('a') + ci)
+                # For each robot, find possible next cells with G[r][c] >= c_char
+                robot_moves = []
+                possible_cells = set()
+                for idx, (r, c) in enumerate(current_positions):
+                    moves = []
+                    if r < R-1:
+                        nr, nc = r+1, c
+                        if grid[nr][nc].lower() >= c_char:
+                            moves.append( (nr, nc) )
+                    if c < C-1:
+                        nr, nc = r, c+1
+                        if grid[nr][nc].lower() >= c_char:
+                            moves.append( (nr, nc) )
+                    robot_moves.append(moves)
+                # Check if all robots have at least one move
+                fail = False
+                for moves in robot_moves:
+                    if not moves:
+                        fail = True
+                        break
+                if fail:
+                    continue
+                # Collect all possible cells
+                cells = []
+                cell_id = {}
+                cid = 0
+                for moves in robot_moves:
+                    for cell in moves:
+                        if cell not in cell_id:
+                            cell_id[cell] = cid
+                            cid +=1
+                M_cells = cid
+                # Build graph
+                N_robots = len(robots)
+                graph = [[] for _ in range(N_robots)]
+                for i in range(N_robots):
+                    for cell in robot_moves[i]:
+                        j = cell_id[cell]
+                        graph[i].append(j)
+                # Perform matching
+                matching = hopcroft_karp(graph, N_robots, M_cells)
+                if matching == N_robots:
+                    # Found possible c_char
+                    chosen_c = c_char
+                    # Now find the actual matching
+                    # Reconstruct the matching
+                    # Perform DFS with assignment
+                    pair_U = [-1] * N_robots
+                    pair_V = [-1] * M_cells
+                    dist = [0] * N_robots
+
+                    def bfs_match():
+                        queue = deque()
+                        for u in range(N_robots):
+                            if pair_U[u] == -1:
+                                dist[u] = 0
+                                queue.append(u)
+                            else:
+                                dist[u] = float('inf')
+                        dist_null = float('inf')
+                        while queue:
+                            u = queue.popleft()
+                            if dist[u] < dist_null:
+                                for v in graph[u]:
+                                    if pair_V[v] == -1:
+                                        if dist_null == float('inf'):
+                                            dist_null = dist[u] + 1
+                                    elif dist[pair_V[v]] == float('inf'):
+                                        dist[pair_V[v]] = dist[u] + 1
+                                        queue.append(pair_V[v])
+                        return dist_null != float('inf')
+
+                    def dfs_match(u):
+                        for v in graph[u]:
+                            if pair_V[v] == -1 or (dist[pair_V[v]] == dist[u] +1 and dfs_match(pair_V[v])):
+                                pair_U[u] = v
+                                pair_V[v] = u
+                                return True
+                        dist[u] = float('inf')
+                        return False
+
+                    matching_count = 0
+                    while bfs_match():
+                        for u in range(N_robots):
+                            if pair_U[u] == -1:
+                                if dfs_match(u):
+                                    matching_count +=1
+                    # Now pair_U has the assignments
+                    assigned_cells = [None] * N_robots
+                    for u in range(N_robots):
+                        v = pair_U[u]
+                        if v != -1:
+                            for cell, id_ in cell_id.items():
+                                if id_ == v:
+                                    assigned_cells[u] = cell
+                                    break
+                    # Assign the cells
+                    new_positions = []
+                    for idx, cell in enumerate(assigned_cells):
+                        new_positions.append(cell)
+                    # Update S
+                    S += chosen_c
+                    # Update robots' positions
+                    current_positions = new_positions.copy()
+                    possible = True
+                    break
+            if not possible:
+                break
+        print(f"Case #{test_case}: {S}")
+
+if __name__ == '__main__':
+    solve()

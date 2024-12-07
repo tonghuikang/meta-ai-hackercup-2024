@@ -1,0 +1,75 @@
+import sys
+import sys
+import math
+
+MOD = 10**9 + 7
+import sys
+
+def main():
+    import sys
+    import sys
+    sys.setrecursionlimit(1000000)
+    T = int(sys.stdin.readline())
+    MAX_N = 10000
+    factorial = [1] * (MAX_N +1)
+    for i in range(1, MAX_N +1):
+        factorial[i] = factorial[i-1] * i % MOD
+    inv_fact = [1] * (MAX_N +1)
+    inv_fact[MAX_N] = pow(factorial[MAX_N], MOD -2, MOD)
+    for i in range(MAX_N, 0, -1):
+        inv_fact[i-1] = inv_fact[i] * i % MOD
+    def comb(n,k):
+        if n <0 or k <0 or n <k:
+            return 0
+        return factorial[n] * inv_fact[k] % MOD * inv_fact[n -k] % MOD
+    for test_case in range(1, T+1):
+        N, M1, M2, H, S = map(int, sys.stdin.readline().split())
+        res =0
+        min_k =0
+        max_k = min(N - H, M1, M2)
+        for k in range(min_k, max_k +1):
+            C1 = comb(N - H, k)
+            pow1 = pow(S -1, k, MOD)
+            # Determine a range
+            min_a = max(H +k - M1, 0)
+            max_a = min(H, M1 -k)
+            if min_a > max_a:
+                continue
+            inner_sum =0
+            for a in range(min_a, max_a +1):
+                min_b = max(H +k - M2, 0)
+                max_b = min(H -a, M2 -k)
+                if min_b > max_b:
+                    continue
+                # Compute the sum over b
+                # sum_{b=min_b}^{max_b} C(H -a, b) * (S -2)^{H -a -b}
+                n = H -a
+                t = S -2
+                if t ==0:
+                    if min_b > n:
+                        sum_b =0
+                    elif min_b <=n:
+                        if max_b >n:
+                            max_b =n
+                        sum_b = 1 if min_b <=n else 0
+                else:
+                    # sum_{b=min_b}^{max_b} C(n,b) * t^{n -b}
+                    # This is same as t^n * sum_{b=min_b}^{max_b} C(n,b) * (1/t)^b
+                    # Which is t^n * sum_{b=min_b}^{max_b} C(n,b) * t^{-b} mod MOD
+                    # However, since t and n can be large, compute directly
+                    sum_b =0
+                    # Precompute t^{c} where c =n -b
+                    # Since b goes from min_b to max_b, c goes from n - min_b down to n - max_b
+                    # Precompute all needed t^c
+                    # But in Python, loop is acceptable
+                    for b in range(min_b, max_b +1):
+                        c = n -b
+                        term = comb(n, b) * pow(t, c, MOD) % MOD
+                        sum_b = (sum_b + term) % MOD
+                inner_sum = (inner_sum + comb(H, a) * sum_b) % MOD
+            res_k = C1 * pow1 % MOD * inner_sum % MOD
+            res = (res + res_k) % MOD
+        print(f"Case #{test_case}: {res}")
+
+if __name__ == "__main__":
+    main()

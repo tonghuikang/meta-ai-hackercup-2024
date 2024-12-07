@@ -1,0 +1,15 @@
+Case #1: accbcaabbcccbbabaccaacaacabbbbbaba
+Case #2: abbcbbccccddddddffeeegggffhgghghhih
+Case #3: acbcbcccccdeddddefeefgfggfhhgghiiih
+Case #4: meta
+Case #5: accbbccccccccccedddedeefeefeegfgf
+Case #6: abbcbbbbcdccccceddddddeeeffefggff
+Case #7: aaaaaaabaaaaaaaaaaaaaaaaaaa
+Case #8: aadcb
+Case #9: abaabaaaabaabaaaaaabaaaab
+Case #10: abbcbbbcbbbbccdccccccccdddedd
+Case #11: abbaaaabbbaaaaaaaaaaaa
+Case #12: abbbbbbbbabbbaabbbbaaaabbbab
+Case #13: abbbbbbbabbbbabaabaa
+Case #14: abbbbbbbbcbbbbcccdccccdcccc
+Case #15: bbbcdcdddfeeggfhgghhhjiikjjlkklllmmm

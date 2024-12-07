@@ -1,0 +1,9 @@
+Case #1: 9
+Case #2: 35
+An error happened during execution:
+Traceback (most recent call last):
+  File "/tmp/tmpsk5vkoav.py", line 147, in <module>
+    main()
+  File "/tmp/tmpsk5vkoav.py", line 133, in main
+    T = int(sys.stdin.readline())
+ValueError: invalid literal for int() with base 10: ''

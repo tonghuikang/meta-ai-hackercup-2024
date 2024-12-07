@@ -1,0 +1,70 @@
+Case #1: aa
+Case #2: aabbbbccccccdddddfeeeffffffggggghh
+Case #3: abacbbcccccdddddedeeeeeffffgggggh
+Case #4: a
+Case #5: aaabbbbbbbbccccccddddddddeeeee
+Case #6: abaaaabbbbbbbcccdccddddddddeee
+Case #7: aaaaaaa
+Case #8: a
+Case #9: aaaaaaaaaa
+Case #10: aaaaaaaaaabbbbbbbbb
+Case #11: aaaaaaaaaaa
+Case #12: aaaaaaaaaaaaaaaaa
+Case #13: aaaaaaaaaaaaaa
+Case #14: aaaaaaaaaaabbbbbbbbbbbb
+Case #15: 
+Case #16: xxxxxxxxxxxxxxxxxxxxxx
+Case #17: 
+Case #18: aaaaaaaaaaaaaabaaaa
+Case #19: aaaaaaaaaaaaaaa
+Case #20: eghhijklmnopqrttaaaaaaabd
+Case #21: aaaaaaaaaaa
+Case #22: e
+Case #23: 
+Case #24: aaaaaaaaaaa
+Case #25: baba
+Case #26: bbcdccdedefefffghghhhiiijkjkkklmmmm
+Case #27: bb
+Case #28: a
+Case #29: bcbbccdeedeeffgggggihhiiijjjkkkllmm
+Case #30: aaaaaaaaabbbbbbbbbbbbcccc
+Case #31: 
+Case #32: aaaaaaaaaaaaaaaaa
+Case #33: xxxxxxxxxxxxxxxxxxca
+Case #34: abbaaaaabaaaaabba
+Case #35: cc
+Case #36: 
+Case #37: eegghjjllmnoqrstaaaaaaaabdde
+Case #38: qrraaaabbbabcddefgijjklmnopq
+Case #39: aaaaaaaaaaaaaa
+Case #40: 
+Case #41: aa
+Case #42: deeghijjlmmoppqsaaaaaaaaabc
+Case #43: aaaaaaaaaaabbbbbbbbb
+Case #44: aa
+Case #45: zzzzzzzzzzzzzzzzcaaaaa
+Case #46: aeeieiiiotzzzzzcca
+Case #47: subbbbbbbbcdefgijkllnnopqrsaa
+Case #48: 
+Case #49: cdddddeepzzzzzzaaa
+Case #50: f
+Case #51: ceefghjjlmmnppqrtuaaaaaaaccd
+Case #52: aaaaaaaaaaaaa
+Case #53: yyyyyyyyyyyyyyycaa
+Case #54: aaaaabbaaaaaaaaabbaaa
+Case #55: abbbbbccccddddddeeeeeffffgggggg
+Case #56: deeghiijllnnoqqsaaaabaaa
+Case #57: aaaaaaaaaa
+Case #58: ba
+Case #59: bbb
+Case #60: bcbccdddddeeefffggghhhiiijjjkkklllm
+Case #61: aaaaaaaaaaaaa
+Case #62: 
+Case #63: aaa
+Case #64: aaaaaaaaa
+Case #65: aaaaaabbbbbbbcccccccccdddddd
+Case #66: aaaaaaaaaabbbbbbbbbb
+Case #67: 
+Case #68: aaaaaaaaaaaaa
+Case #69: aaaaaaemmvzzzzzaaa
+Case #70: cc
