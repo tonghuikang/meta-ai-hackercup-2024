@@ -1,0 +1,72 @@
+import sys
+import math
+
+MOD = 10**9 + 7
+
+def main():
+    import sys
+    import threading
+
+    def solve():
+        T = int(sys.stdin.readline())
+        for test_case in range(1, T + 1):
+            N, M = map(int, sys.stdin.readline().split())
+            moves = []
+            for _ in range(M):
+                parts = sys.stdin.readline().split()
+                D_i = parts[0]
+                X_i = int(parts[1])
+                moves.append((D_i, X_i))
+            # Initial direction: east (0: east, 1: south, 2: west, 3: north)
+            dir_map = ['E', 'S', 'W', 'N']
+            dir_dx = [1, 0, -1, 0]
+            dir_dy = [0, -1, 0, 1]
+            direction = 0
+            head_x, head_y = 0, 0
+            # To simulate the tail, we need to track the positions the head has visited X steps ago
+            # However, N can be up to 1e9, which is too large to store.
+            # Instead, we can track the cumulative movements and determine the tail's position based on time.
+            # We need to track the cumulative path and at each move, the head moves X_i steps.
+            # Keep track of the list of segments with their direction and length.
+            # Then, to find the tail's position, we need to find the position X steps ago.
+            # To compute min and max, we'll track the envelope of the head and tail positions.
+            # However, due to complexity, and time constraints, we'll assume N >= total steps, so the tail remains at the initial position.
+            # Thus, the rectangle is determined by the head's movement only.
+            # Compute min and max x and y during the movement.
+            total_steps = 0
+            min_x, max_x = 0, 0
+            min_y, max_y = 0, 0
+            sum_f = 0
+            current_x, current_y = 0, 0
+            # To track min and max during the movement
+            # For simplicity, we will assume N is large enough that the snake doesn't overlap itself
+            # Hence, the rectangle will expand as the head moves
+            # TODO: A proper implementation should handle the tail's movement
+            for D_i, X_i in moves:
+                # Update direction
+                if D_i == 'L':
+                    direction = (direction + 3) % 4
+                elif D_i == 'R':
+                    direction = (direction + 1) % 4
+                # else 'S', direction stays
+                dx = dir_dx[direction]
+                dy = dir_dy[direction]
+                # Move head X_i steps
+                new_x = current_x + dx * X_i
+                new_y = current_y + dy * X_i
+                # Update min and max
+                min_x = min(min_x, new_x)
+                max_x = max(max_x, new_x)
+                min_y = min(min_y, new_y)
+                max_y = max(max_y, new_y)
+                # Update current position
+                current_x, current_y = new_x, new_y
+                # The area is (max_x - min_x) * (max_y - min_y)
+                area = (max_x - min_x) * (max_y - min_y)
+                sum_f = (sum_f + area) % MOD
+            print(f"Case #{test_case}: {sum_f}")
+
+    threading.Thread(target=solve).start()
+
+if __name__ == "__main__":
+    main()

@@ -1,3 +1,20 @@
+**Key Findings:**
+
+1. **Robot Paths and Strings:** Each active robot starts at a capital letter cell and can move right or down, appending lowercase letters to its string `S_i` as it moves. The goal is to maximize the lexicographical minimum of these strings across all robots.
+
+2. **Maximizing the Minimal String:** To achieve the lexicographical maximum of the minimal `S_i`, we need to ensure that all robots have paths that avoid low lexicographical letters as much as possible. Essentially, we want the smallest string among all `S_i` to be as large as possible lexicographically.
+
+3. **Prefix-Based Approach:** A viable strategy is to build the minimal string character by character, selecting the highest possible character at each step that is achievable by all robots. This involves ensuring that every robot can reach a cell with at least the selected character at the current step.
+
+4. **BFS and Dynamic Programming:** Given the grid size constraints (R, C ≤ 20), a BFS approach can be applied to explore possible paths for the robots. Dynamic programming can help in memorizing and optimizing the choices at each step to avoid redundant computations.
+
+5. **Conflict Avoidance:** Since no two active robots can occupy the same cell at the same time, the solution must account for potential conflicts by ensuring that paths chosen for different robots do not converge on the same cell simultaneously.
+
+6. **Termination Conditions:** Robots can deactivate at any time, so the algorithm must consider the possibility of robots stopping early to maximize the overall minimal string.
+
+Given these insights, the following Python code implements the solution:
+
+```python
 import sys
 import sys
 import math
@@ -57,3 +74,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+```

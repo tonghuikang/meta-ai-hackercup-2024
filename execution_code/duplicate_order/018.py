@@ -1,0 +1,145 @@
+import sys
+import sys
+import sys
+def main():
+    import sys
+    import sys
+    sys.setrecursionlimit(1 << 25)
+    T = int(sys.stdin.readline())
+    test_cases = []
+    max_N = 0
+    for _ in range(T):
+        line = ''
+        while line.strip() == '':
+            line = sys.stdin.readline()
+        N, M1, M2, H, S = map(int, line.strip().split())
+        test_cases.append((N, M1, M2, H, S))
+        if N > max_N:
+            max_N = N
+    MOD = 10**9 +7
+    # Precompute factorial and inverse factorial up to max_N
+    fact = [1]*(max_N +1)
+    for i in range(1, max_N +1):
+        fact[i] = fact[i-1]*i % MOD
+    inv_fact = [1]*(max_N +1)
+    # Compute inv_fact[max_N] first
+    inv_fact[max_N] = pow(fact[max_N], MOD-2, MOD)
+    for i in range(max_N, 0, -1):
+        inv_fact[i-1] = inv_fact[i]*i % MOD
+    def binom(n, k):
+        if n <0 or k <0 or k >n:
+            return 0
+        return fact[n]*inv_fact[k] % MOD * inv_fact[n -k] % MOD
+    for tc_idx, (N, M1, M2, H, S) in enumerate(test_cases,1):
+        C = N - H
+        min_t = 0
+        max_t = min(C, M1, M2)
+        answer =0
+        # Precompute binom(C,t) for t from 0 to max_t
+        # Precompute binom(H,z) for z from 0 to H
+        # To speed up, precompute binom(H,z)
+        binom_H = [binom(H,z) for z in range(H+1)]
+        # Precompute (S-2)^z for z from 0 to H
+        S_minus_2_pow = [1]*(H+1)
+        for z in range(1, H+1):
+            S_minus_2_pow[z] = S_minus_2_pow[z-1]*(S-2) % MOD
+        # Precompute (S-1)^t for t from 0 to C
+        S_minus_1_pow = [1]*(C+1)
+        for t in range(1, C+1):
+            S_minus_1_pow[t] = S_minus_1_pow[t-1]*(S-1) % MOD
+        for t in range(0, max_t +1):
+            binom_C_t = binom(C, t)
+            s1_pow_t = S_minus_1_pow[t]
+            # Determine z_min and z_max
+            z_min = max(0, H - M1 + t, H - M2 + t)
+            z_max = min(H, M1 - t, M2 - t)
+            if z_min > z_max:
+                continue
+            for z in range(z_min, z_max +1):
+                # Compute number_of_x
+                lower_x = max(0, H - M1 + t)
+                upper_x = min(M2 - t - z, H - z)
+                number_of_x = upper_x - lower_x +1
+                if number_of_x <0:
+                    continue
+                binom_H_z = binom_H[z]
+                s2_pow_z = S_minus_2_pow[z]
+                term = binom_H_z * s2_pow_z % MOD
+                term = term * number_of_x % MOD
+                term = term * binom_C_t % MOD
+                term = term * s1_pow_t % MOD
+                answer = (answer + term) % MOD
+        print(f"Case #{tc_idx}: {answer}")
+
+import sys
+import sys
+import sys
+def main():
+    import sys
+    import sys
+    sys.setrecursionlimit(1 << 25)
+    T = int(sys.stdin.readline())
+    test_cases = []
+    max_N = 0
+    for _ in range(T):
+        line = ''
+        while line.strip() == '':
+            line = sys.stdin.readline()
+        N, M1, M2, H, S = map(int, line.strip().split())
+        test_cases.append((N, M1, M2, H, S))
+        if N > max_N:
+            max_N = N
+    MOD = 10**9 +7
+    # Precompute factorial and inverse factorial up to max_N
+    fact = [1]*(max_N +1)
+    for i in range(1, max_N +1):
+        fact[i] = fact[i-1]*i % MOD
+    inv_fact = [1]*(max_N +1)
+    # Compute inv_fact[max_N] first
+    inv_fact[max_N] = pow(fact[max_N], MOD-2, MOD)
+    for i in range(max_N, 0, -1):
+        inv_fact[i-1] = inv_fact[i]*i % MOD
+    def binom(n, k):
+        if n <0 or k <0 or k >n:
+            return 0
+        return fact[n]*inv_fact[k] % MOD * inv_fact[n -k] % MOD
+    for tc_idx, (N, M1, M2, H, S) in enumerate(test_cases,1):
+        C = N - H
+        min_t = 0
+        max_t = min(C, M1, M2)
+        answer =0
+        # Precompute binom(C,t) for t from 0 to max_t
+        # Precompute binom(H,z) for z from 0 to H
+        # To speed up, precompute binom(H,z)
+        binom_H = [binom(H,z) for z in range(H+1)]
+        # Precompute (S-2)^z for z from 0 to H
+        S_minus_2_pow = [1]*(H+1)
+        for z in range(1, H+1):
+            S_minus_2_pow[z] = S_minus_2_pow[z-1]*(S-2) % MOD
+        # Precompute (S-1)^t for t from 0 to C
+        S_minus_1_pow = [1]*(C+1)
+        for t in range(1, C+1):
+            S_minus_1_pow[t] = S_minus_1_pow[t-1]*(S-1) % MOD
+        for t in range(0, max_t +1):
+            binom_C_t = binom(C, t)
+            s1_pow_t = S_minus_1_pow[t]
+            # Determine z_min and z_max
+            z_min = max(0, H - M1 + t, H - M2 + t)
+            z_max = min(H, M1 - t, M2 - t)
+            if z_min > z_max:
+                continue
+            for z in range(z_min, z_max +1):
+                # Compute number_of_x
+                lower_x = max(0, H - M1 + t)
+                upper_x = min(M2 - t - z, H - z)
+                number_of_x = upper_x - lower_x +1
+                if number_of_x <0:
+                    continue
+                binom_H_z = binom_H[z]
+                s2_pow_z = S_minus_2_pow[z]
+                term = binom_H_z * s2_pow_z % MOD
+                term = term * number_of_x % MOD
+                term = term * binom_C_t % MOD
+                term = term * s1_pow_t % MOD
+                answer = (answer + term) % MOD
+        print(f"Case #{tc_idx}: {answer}")

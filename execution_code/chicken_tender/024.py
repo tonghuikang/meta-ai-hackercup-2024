@@ -1,0 +1,168 @@
+import sys
+import math
+
+def readints():
+    return list(map(int, sys.stdin.readline().split()))
+
+def rotate_polygon(vertices, angle_rad):
+    cos_a = math.cos(angle_rad)
+    sin_a = math.sin(angle_rad)
+    return [(x * cos_a - y * sin_a, x * sin_a + y * cos_a) for (x, y) in vertices]
+
+def translate_polygon(vertices, dx, dy):
+    return [(x + dx, y + dy) for (x, y) in vertices]
+
+def bounding_box(vertices):
+    min_x = min(x for x, y in vertices)
+    max_x = max(x for x, y in vertices)
+    min_y = min(y for x, y in vertices)
+    max_y = max(y for x, y in vertices)
+    return min_x, max_x, min_y, max_y
+
+def point_in_polygon(x, y, poly):
+    # Ray casting algorithm for point in polygon
+    n = len(poly)
+    inside = False
+    for i in range(n):
+        xi, yi = poly[i]
+        xj, yj = poly[(i + 1) % n]
+        if ((yi > y) != (yj > y)):
+            intersect_x = (xj - xi) * (y - yi) / (yj - yi + 1e-12) + xi
+            if x < intersect_x:
+                inside = not inside
+    return inside
+
+def polygon_contains_polygon(inner, outer):
+    # Check if any point of inner is inside outer
+    return any(point_in_polygon(x, y, outer) for x, y in inner)
+
+def polygons_intersect(poly1, poly2):
+    # Using the Separating Axis Theorem
+    def get_axes(poly):
+        axes = []
+        n = len(poly)
+        for i in range(n):
+            p1 = poly[i]
+            p2 = poly[(i+1) % n]
+            edge = (p2[0] - p1[0], p2[1] - p1[1])
+            normal = (-edge[1], edge[0])
+            length = math.hypot(normal[0], normal[1])
+            if length != 0:
+                normal = (normal[0]/length, normal[1]/length)
+            axes.append(normal)
+        return axes
+
+    def project(poly, axis):
+        min_p = max_p = poly[0][0]*axis[0] + poly[0][1]*axis[1]
+        for (x, y) in poly[1:]:
+            projection = x * axis[0] + y * axis[1]
+            min_p = min(min_p, projection)
+            max_p = max(max_p, projection)
+        return min_p, max_p
+
+    axes1 = get_axes(poly1)
+    axes2 = get_axes(poly2)
+    for axis in axes1 + axes2:
+        min1, max1 = project(poly1, axis)
+        min2, max2 = project(poly2, axis)
+        if max1 < min2 or max2 < min1:
+            return False
+    return True
+
+def solve():
+    T = int(sys.stdin.readline())
+    for test_case in range(1, T+1):
+        N, W, D = readints()
+        vertices = [tuple(readints()) for _ in range(N)]
+        success = False
+        epsilon = 1e-8
+
+        # Define sauce cup polygon (boundary)
+        sauce_bottom = [(0,0), (W,0), (W,D), (0,D)]
+
+        for i in range(N):
+            # Compute angle to rotate vertex i to the x-axis
+            x, y = vertices[i]
+            if y == 0:
+                angle = 0.0
+            else:
+                angle = -math.atan2(y, x - x) if x - x !=0 else -math.pi/2
+
+            # Alternatively, compute angle that makes the edge from vertex i to i+1 horizontal
+            # But simpler approach: rotate so that vertex i lies on x-axis
+
+            # Vector to rotate vertex i to x-axis
+            if y == 0 and x >=0:
+                angle = 0.0
+            else:
+                angle = -math.atan2(y, 0)  # Align vertex to x-axis
+
+            # General approach: rotate so that vertex i has y=0
+            angle = -math.atan2(y, x - x) if x !=x else -math.atan2(y, 1)
+
+            # A better angle: just rotate so that vertex i lies on x-axis
+            angle = -math.atan2(y, 1)  # Not correct. Instead: rotate by -theta where theta is angle of the vertex
+
+            # Correct rotation: rotate so that vertex i has y=0
+            theta = math.atan2(y, x)  # Angle from origin to vertex
+            angle = -math.atan2(y, 1)  # Not correct.
+
+            # Properly compute rotation angle to make vertex i lie on x-axis
+            # The direction after rotation should have y=0
+            # So rotation angle is the angle of vertex i, i.e., theta = atan2(y, x)
+            theta = math.atan2(y, x)
+            angle = -theta
+
+            rotated = rotate_polygon(vertices, angle)
+            # Now, translate so that vertex i lies on x-axis
+            x_rot, y_rot = rotated[i]
+            dx = -x_rot
+            dy = -y_rot
+            translated = translate_polygon(rotated, dx, dy)
+
+            # Check all vertices are on or above x-axis
+            if any(y < -epsilon for (x, y) in translated):
+                continue
+
+            # Check vertex i lies between 0 and W on x-axis
+            xi, yi = translated[i]
+            if not (-epsilon <= yi <= epsilon):
+                continue
+            if not (0 - epsilon <= xi <= W + epsilon):
+                continue
+
+            # Check bounding box fits within W and D
+            min_x, max_x, min_y, max_y = bounding_box(translated)
+            if max_x - min_x > W + epsilon or max_y - min_y > D + epsilon:
+                continue
+
+            # Now, define sauce cup as (0,0)-(W,0)-(W,D)-(0,D)
+            # Some point of the polygon lies strictly within the sauce cup
+            # No point on the sauce cup lies strictly within the polygon
+
+            # To check if some point is strictly inside sauce cup and polygon
+            # We'll sample a few points inside the polygon and check if they are inside the sauce cup
+            # And also check that sauce cup's interior does not have any point inside polygon
+
+            # First, check that some vertex lies on x-axis between 0 and W
+            # Already ensured by vertex i placement
+
+            # Check at least one point inside the polygon is strictly inside the sauce cup
+            # Since polygon is convex, check if its centroid is inside the sauce cup and polygon
+
+            centroid_x = sum(x for x, y in translated) / N
+            centroid_y = sum(y for x, y in translated) / N
+            if 0 < centroid_x < W and 0 < centroid_y < D:
+                if point_in_polygon(centroid_x, centroid_y, translated):
+                    # Now check that sauce cup's boundary has no point inside polygon
+                    # Since polygon is convex and all its vertices are inside or on boundaries,
+                    # it's sufficient to check the corners of the sauce cup
+                    corners = [(0,0), (W,0), (W,D), (0,D)]
+                    if not any(point_in_polygon(x, y, translated) for (x, y) in corners):
+                        success = True
+                        break
+
+        print(f"Case #{test_case}: {'Yes' if success else 'No'}")
+
+if __name__ == "__main__":
+    solve()

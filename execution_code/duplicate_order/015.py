@@ -1,0 +1,57 @@
+import sys
+import math
+import sys
+
+MOD = 10**9 + 7
+
+def precompute_factorials(max_n):
+    fact = [1] * (max_n + 1)
+    for i in range(1, max_n +1):
+        fact[i] = fact[i-1] * i % MOD
+    inv_fact = [1] * (max_n +1)
+    inv_fact[max_n] = pow(fact[max_n], MOD -2, MOD)
+    for i in range(max_n -1, -1, -1):
+        inv_fact[i] = inv_fact[i+1] * (i+1) % MOD
+    return fact, inv_fact
+
+def comb(n, k, fact, inv_fact):
+    if k <0 or k >n:
+        return 0
+    return fact[n] * inv_fact[k] % MOD * inv_fact[n -k] % MOD
+
+def solve():
+    import sys
+    input = sys.stdin.read
+    data = input().split()
+    T = int(data[0])
+    idx =1
+    max_n=0
+    test_cases = []
+    for _ in range(T):
+        N = int(data[idx])
+        M1 = int(data[idx +1])
+        M2 = int(data[idx +2])
+        H = int(data[idx +3])
+        Sigma = int(data[idx +4])
+        test_cases.append( (N, M1, M2, H, Sigma))
+        max_n = max(max_n, N)
+        idx +=5
+    fact, inv_fact = precompute_factorials(max_n)
+    for tc, (N, M1, M2, H, Sigma) in enumerate(test_cases,1):
+        if H > N:
+            total =0
+            print(f"Case #{tc}: {total}")
+            continue
+        C_N_H = comb(N, H, fact, inv_fact)
+        Sigma_minus1 = Sigma -1
+        Sigma_plus1 = Sigma +1
+        term1 = C_N_H * pow(Sigma_minus1, H, MOD) % MOD
+        term2 = pow(Sigma +1, H, MOD)
+        term3 = pow(Sigma, N - H, MOD) if N - H >=0 else 1
+        total = term1 * term2 % MOD
+        total = total * term3 % MOD
+        print(f"Case #{tc}: {total}")
+
+# To execute the solution, you should call the `solve` function. 
+# However, since this platform does not support direct execution with custom input,
+# you can copy and execute this code in your local Python environment.
