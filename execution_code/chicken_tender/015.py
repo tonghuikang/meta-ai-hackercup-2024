@@ -1,0 +1,152 @@
+import sys
+import math
+from itertools import combinations
+
+def readints():
+    return list(map(int, sys.stdin.readline().split()))
+
+def rotate_polygon(polygon, angle):
+    cos_a = math.cos(angle)
+    sin_a = math.sin(angle)
+    return [(x * cos_a - y * sin_a, x * sin_a + y * cos_a) for (x, y) in polygon]
+
+def translate_polygon(polygon, dx, dy):
+    return [(x + dx, y + dy) for (x, y) in polygon]
+
+def point_in_polygon(point, polygon):
+    # Ray casting algorithm for point in polygon
+    x, y = point
+    n = len(polygon)
+    inside = False
+    for i in range(n):
+        xi, yi = polygon[i]
+        xj, yj = polygon[(i+1)%n]
+        if ((yi > y) != (yj > y)):
+            x_intersect = (xj - xi) * (y - yi) / (yj - yi + 1e-12) + xi
+            if x < x_intersect:
+                inside = not inside
+    return inside
+
+def polygon_contains_point(polygon, point):
+    return point_in_polygon(point, polygon)
+
+def sauce_cup_points(W, D, step=0.5):
+    # Generate points on the sauce cup boundaries
+    points = []
+    # Bottom edge
+    for x in frange(0, W, step):
+        points.append((x, 0))
+    # Right edge
+    for y in frange(0, D, step):
+        points.append((W, y))
+    # Top edge
+    for x in frange(W, 0, -step):
+        points.append((x, D))
+    # Left edge
+    for y in frange(D, 0, -step):
+        points.append((0, y))
+    return points
+
+def frange(start, stop, step):
+    while (step > 0 and start <= stop) or (step <0 and start >= stop):
+        yield start
+        start += step
+
+def any_point_inside_cup(polygon, W, D):
+    # Check if any point with 0 < x < W and 0 < y < D is inside the polygon
+    # We'll sample points within the cup
+    step = min(W, D) / 10.0
+    for x in frange(step, W - step, step):
+        for y in frange(step, D - step, step):
+            if polygon_contains_point(polygon, (x, y)):
+                return True
+    return False
+
+def no_sauce_inside_polygon(polygon, W, D):
+    # Check that no point on the sauce cup is strictly inside the polygon
+    # We'll sample points on the boundaries
+    step = min(W, D) / 100.0
+    # Bottom edge
+    for x in frange(0, W, step):
+        if polygon_contains_point(polygon, (x, 0)):
+            return False
+    # Right edge
+    for y in frange(0, D, step):
+        if polygon_contains_point(polygon, (W, y)):
+            return False
+    # Top edge
+    for x in frange(W, 0, -step):
+        if polygon_contains_point(polygon, (x, D)):
+            return False
+    # Left edge
+    for y in frange(D, 0, -step):
+        if polygon_contains_point(polygon, (0, y)):
+            return False
+    return True
+
+def solve_case(N, W, D, vertices):
+    # Iterate over each vertex to align it to x-axis
+    for i in range(N):
+        x0, y0 = vertices[i]
+        angle = -math.atan2(y0, x0 if i==0 else vertices[i][0]-vertices[0][0] )
+        # To align vertex i to x-axis, calculate angle
+        # Better: calculate the angle that makes vertex i have y=0
+        xi, yi = vertices[i]
+        theta = -math.atan2(yi, 1e-12 if xi ==0 else xi)
+        # Rotate polygon
+        angle = -math.atan2(yi, xi) if xi !=0 else -math.pi/2
+        rotated = rotate_polygon(vertices, angle)
+        # After rotation, vertex i should be on x-axis
+        xi_rot, yi_rot = rotated[i]
+        # Translate vertically so yi_rot =0
+        dy = -yi_rot
+        rotated_translated = translate_polygon(rotated, 0, dy)
+        # Now, find x translation so that xi_rot + dx is between 0 and W
+        # So dx >= -xi_rot and dx <= W - xi_rot
+        min_dx = -rotated_translated[i][0]
+        max_dx = W - rotated_translated[i][0]
+        # Try values of dx within [min_dx, max_dx]
+        # Since W and coordinates are small, iterate in small steps
+        step = 0.5
+        dx_values = []
+        current = min_dx
+        while current <= max_dx:
+            dx_values.append(current)
+            current += step
+        # Also include max_dx
+        dx_values.append(max_dx)
+        for dx in dx_values:
+            final_poly = translate_polygon(rotated_translated, dx, 0)
+            # Check all y >=0
+            if any(y < -1e-6 for x, y in final_poly):
+                continue
+            # Check some vertex on x-axis between 0 and W
+            on_x_axis = False
+            for x, y in final_poly:
+                if abs(y) <1e-6 and 0 -1e-6 <= x <= W +1e-6:
+                    on_x_axis = True
+                    break
+            if not on_x_axis:
+                continue
+            # Check some point inside cup
+            if not any_point_inside_cup(final_poly, W, D):
+                continue
+            # Check no sauce cup point inside polygon
+            if not no_sauce_inside_polygon(final_poly, W, D):
+                continue
+            return "Yes"
+    return "No"
+
+def main():
+    T = int(sys.stdin.readline())
+    for tc in range(1, T+1):
+        N, W, D = map(int, sys.stdin.readline().split())
+        vertices = []
+        for _ in range(N):
+            x, y = map(int, sys.stdin.readline().split())
+            vertices.append((x, y))
+        result = solve_case(N, W, D, vertices)
+        print(f"Case #{tc}: {result}")
+
+if __name__ == "__main__":
+    main()
