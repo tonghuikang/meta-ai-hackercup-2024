@@ -1,0 +1,120 @@
+import sys
+import sys
+import sys
+from collections import deque
+import sys
+
+def readints():
+    return list(map(int, sys.stdin.readline().split()))
+
+def solve_case(R, C, grid):
+    # Find all robot starting positions
+    robots = []
+    for r in range(R):
+        for c in range(C):
+            if grid[r][c].isupper():
+                robots.append( (r, c, grid[r][c].lower()) )
+    # Initialize positions and strings
+    robot_paths = []
+    for robot in robots:
+        r, c, s = robot
+        robot_paths.append( {'r':r, 'c':c, 's':s, 'active':True} )
+    # We'll build the min(S_i) step by step
+    # Initialize target string
+    target = ''
+    while True:
+        # Find the maximum possible next character
+        possible_chars = []
+        for robot in robot_paths:
+            if robot['active']:
+                possible_next = set()
+                # Can move right
+                if robot['c'] + 1 < C:
+                    possible_next.add(grid[robot['r']][robot['c']+1].lower())
+                # Can move down
+                if robot['r'] + 1 < R:
+                    possible_next.add(grid[robot['r']+1][robot['c']].lower())
+                # Can deactivate: no addition
+                possible_next.add(None)  # None represents deactivation
+                if possible_next:
+                    chars = [c for c in possible_next if c is not None]
+                    if chars:
+                        max_c = max(chars)
+                        possible_chars.append(max_c)
+                    else:
+                        possible_chars.append(None)
+                else:
+                    possible_chars.append(None)
+        # Now, to maximize min(S_i), we need to choose the smallest possible among possible_chars
+        # But to maximize, we take the maximum among the minimum possible
+        # So, the min(S_i) is determined by the smallest S_i
+        # To maximize it, we need to choose the maximum among the possible minimal next characters
+        # So, the next character of target should be the maximum character such that all robots can have at least that
+        # So, find the minimum of possible_chars, and maximize that
+        # However, some robots might have no possible_chars (must deactivate)
+        # To ensure min(S_i) is maximized, find the maximum among the possible minimal characters
+        # That is, the maximum c such that all robots have c as possible next character or more
+        # So, iterate from 'z' downto 'a' and check if all robots have next char >= c
+        found = False
+        for ci in range(ord('z'), ord('a')-1, -1):
+            c = chr(ci)
+            valid = True
+            for robot in robot_paths:
+                if robot['active']:
+                    next_possible = set()
+                    # Can move right
+                    if robot['c'] + 1 < C:
+                        next_possible.add(grid[robot['r']][robot['c']+1].lower())
+                    # Can move down
+                    if robot['r'] + 1 < R:
+                        next_possible.add(grid[robot['r']+1][robot['c']].lower())
+                    # Can deactivate: no addition
+                    # To have S_i >= target + c, either:
+                    # - S_i continues with c or higher
+                    # - S_i deactivates and target + c is <= S_i
+                    # Which for S_i >= target + c requires that if S_i deactivates, target + c <= S_i
+                    # But S_i is target up to now, since we are adding c
+                    # Thus, to ensure S_i >= target + c, robots cannot deactivate unless target is already a prefix of S_i
+                    # This gets complicated, so for simplicity, require that robot can append c
+                    if c not in next_possible:
+                        valid = False
+                        break
+            if valid:
+                # Append this character to target
+                target += c
+                # Now, move all robots to take c if possible
+                for robot in robot_paths:
+                    if robot['active']:
+                        # Prefer to move to cell with c
+                        moved = False
+                        # Try moving right
+                        if robot['c'] + 1 < C and grid[robot['r']][robot['c']+1].lower() == c:
+                            robot['c'] +=1
+                            robot['s'] += c
+                            moved = True
+                        elif robot['r'] +1 < R and grid[robot['r']+1][robot['c']].lower() == c:
+                            robot['r'] +=1
+                            robot['s'] += c
+                            moved = True
+                        if not moved:
+                            # Should not happen
+                            robot['active'] = False
+                found = True
+                break
+        if not found:
+            break
+    return target
+
+def main():
+    T = int(sys.stdin.readline())
+    for tc in range(1, T+1):
+        R, C = map(int, sys.stdin.readline().split())
+        grid = []
+        for _ in range(R):
+            row = sys.stdin.readline().strip()
+            grid.append(row)
+        res = solve_case(R, C, grid)
+        print(f"Case #{tc}: {res}")
+
+if __name__ == "__main__":
+    main()

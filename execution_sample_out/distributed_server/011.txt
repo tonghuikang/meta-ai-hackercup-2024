@@ -1,0 +1,3 @@
+Case #1: meta
+Case #2: haczdr
+Case #3: cup

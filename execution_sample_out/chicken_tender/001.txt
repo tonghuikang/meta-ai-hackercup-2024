@@ -1,0 +1,1 @@
+This solution requires the 'shapely' library.
