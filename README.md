@@ -1,4 +1,6 @@
-# Hacker Cup Closed - Automated LLM Solver
+# Meta Hackercup AI track participation
+
+https://www.facebook.com/codingcompetitions/hacker-cup/2024/final-round/scoreboard?track=AI_CLOSED_TRACK
 
 Automated system for solving Meta Hacker Cup competitive programming problems using LLMs.
 
